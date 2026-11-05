@@ -1,0 +1,45 @@
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:${PORT:-8080}:8080"
+    environment:
+      AI_BASE_URL: ${AI_BASE_URL:-https://router.cheap/v1}
+      AI_MODEL: ${AI_MODEL:-qwen3.8-flash}
+      AI_API_KEY: ${AI_API_KEY:-}
+      TEST_AI_API_KEY: ${TEST_AI_API_KEY:-}
+      TEST_AI_MODEL: ${TEST_AI_MODEL:-gemini-3.8-flash}
+      TEST_AI_BASE_URL: ${TEST_AI_BASE_URL:-https://api.nyxos.shop/v1}
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-}
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+      CALENDAR_DB: /data/calendar/calendar.sqlite3
+      RATE_LIMIT_ENABLED: "1"
+      RATE_LIMIT_PER_HOUR: ${RATE_LIMIT_PER_HOUR:-60}
+      RATE_LIMIT_GLOBAL_PER_HOUR: ${RATE_LIMIT_GLOBAL_PER_HOUR:-240}
+      TRUST_PROXY: "1"
+    volumes:
+      - speech-models:/data/models
+      - calendar-data:/data/calendar
+    restart: unless-stopped
+
+  https:
+    image: caddy:2.11-alpine
+    profiles: [https]
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  speech-models:
+  calendar-data:
+  caddy-data:
+  caddy-config:

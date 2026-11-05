@@ -1,0 +1,90 @@
+
+.page-heading h1 span {
+  display: block;
+  width: min(300px, 64vw);
+  aspect-ratio: 1030 / 235;
+  padding: 0;
+  background: url("assets/heading-study.png") 36.6% 49.3% / 118.83% 129.49% no-repeat;
+  box-shadow: none;
+  color: transparent;
+  overflow: hidden;
+}
+#panel-calendar .page-heading h1 span {
+  width: min(300px, 64vw);
+  aspect-ratio: 1030 / 235;
+  background-size: 103.69% 157.87%;
+  background-position: 42.1% 38.2%;
+  background-image: url("assets/heading-calendar.png");
+}
+.page-heading .companion { width: 125px; height: 125px; margin: 0; align-self: center; }
+.page-heading .companion img { width: 125px; height: 125px; object-fit: contain; filter: none; }
+.schedule-heading { padding-right: 130px; }
+.schedule-heading::after { content: ""; position: absolute; right: 0; top: 20px; width: 115px; height: 115px; background: url("assets/robot.png") center / contain no-repeat; image-rendering: pixelated; pointer-events: none; }
+.source-window, .settings-window, .calendar-window, .day-window, .result-window {
+  border: 2px solid var(--edge);
+  border-radius: 0;
+  overflow: hidden;
+}
+.window-bar { padding: 12px 20px; }
+.source-window .step-heading, .settings-window .step-heading { min-height: 58px; padding-right: 65px; position: relative; }
+.source-window .step-heading::after, .settings-window .step-heading::after {
+  content: ""; position: absolute; right: 0; top: -7px; width: 54px; height: 54px;
+  background: url("assets/file-icon.png") center / contain no-repeat;
+}
+.settings-window .step-heading::after { background-image: url("assets/magnifier.png"); }
+.day-window .window-body:has(.schedule-empty) { position: relative; }
+.day-window .window-body:has(.schedule-empty)::after {
+  content: ""; position: absolute; top: 18px; right: 18px; width: 92px; height: 75px;
+  background: url("assets/gamepad.png") center / contain no-repeat; pointer-events: none;
+}
+.day-window .window-body:has(.schedule-empty) h2 { padding-right: 95px; }
+@media (max-width: 650px) {
+  .page-heading h1 span { width: min(250px, 60vw); }
+  #panel-calendar .page-heading h1 span { width: min(250px, 60vw); }
+  .page-heading .companion, .page-heading .companion img { width: 90px; height: 90px; }
+  .schedule-heading { padding-right: 0; }
+  .schedule-heading > div:first-child { padding-right: 90px; }
+  .schedule-heading::after { width: 85px; height: 85px; top: 16px; }
+}
+
+.material-includes { margin: 25px 0 28px; }
+.includes-title { margin: 0 0 14px; font-size: 10px; line-height: 1.8; color: var(--muted); }
+.material-includes ul { list-style: square; padding-left: 18px; margin: 0; }
+.material-includes li { padding: 5px 0 5px 5px; font-size: 10px; line-height: 2; }
+.material-includes b { font-weight: normal; }
+
+#panel-calendar .event-status-select {
+  appearance: none;
+  width: auto;
+  min-width: 142px;
+  max-width: 100%;
+  padding: 10px 30px 10px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 0;
+  background-color: var(--surface);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 15px center, right 10px center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  color: var(--text);
+  box-shadow: 2px 2px #0003;
+  font: 9px/1.8 var(--pixel);
+  cursor: pointer;
+}
+#panel-calendar .event-status-select:hover { border-color: var(--blue); }
+#panel-calendar .event-status-select:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+#panel-calendar .schedule-actions #import-olympiad {
+  padding: 10px 14px;
+  border: 1px solid var(--edge);
+  background: var(--surface);
+  box-shadow: 2px 2px #0003;
+  color: var(--text);
+  text-decoration: none;
+  text-align: center;
+}
+#panel-calendar .schedule-actions #import-olympiad:hover { border-color: var(--blue); }
+#panel-calendar .schedule-help-button { background: var(--surface); border-color: var(--edge); color: var(--text); box-shadow: 2px 2px #0003; }
+@media(max-width:650px) {
+  #panel-calendar .schedule-actions #import-olympiad { padding: 10px 12px; }
+  #panel-calendar .event-status-select { min-width: 135px; }
+}

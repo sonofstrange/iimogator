@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#a79cdb">
+  <title>ИИмогатор - подготовка и календарь</title>
+  <script src="https://st.max.ru/js/max-web-app.js"></script>
+  <link rel="stylesheet" href="assets/pixel-font.css">
+  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="study.css?v=4">
+  <link rel="stylesheet" href="ponyatno.css?v=4">
+  <link rel="stylesheet" href="calendar.css?v=6">
+  <link rel="stylesheet" href="theme.css?v=4" id="light-theme">
+  <link rel="stylesheet" href="designer.css?v=7">
+  <script src="theme.js"></script>
+  <script src="sfx.js?v=4"></script>
+  <script src="app.js?v=5" defer></script>
+  <script src="ponyatno.js?v=5" defer></script>
+  <script src="matching.js?v=3" defer></script>
+  <script src="study.js?v=6" defer></script>
+  <script type="module" src="calendar.js?v=7"></script>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true" class="logo-filter">
+    <defs>
+      <filter id="logo-no-outline" color-interpolation-filters="sRGB">
+        <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  1 -1 0 0 0"/>
+        <feComponentTransfer><feFuncA type="linear" slope="4" intercept="0"/></feComponentTransfer>
+      </filter>
+    </defs>
+  </svg>
+  <div class="app">
+    <header class="header">
+      <a href="#study" class="brand" aria-label="ИИмогатор - подготовка"><img src="assets/logo.png" alt="ИИмогатор" width="826" height="150"></a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Включить тёмную тему" title="Включить тёмную тему">
+          <svg class="theme-moon" aria-hidden="true" viewBox="0 0 16 16"><path d="M5 1h4v2H7v2H5v6h2v2h5v-2h2v2h-2v2H6v-2H4v-2H2V5h2V3h1z"/></svg>
+          <svg class="theme-sun" aria-hidden="true" viewBox="0 0 16 16" hidden><path d="M7 0h2v3H7zM7 13h2v3H7zM0 7h3v2H0zM13 7h3v2h-3zM2 2h2v2H2zM12 2h2v2h-2zM2 12h2v2H2zM12 12h2v2h-2zM5 4h6v1h1v6h-1v1H5v-1H4V5h1z"/></svg>
+        </button>
+    </header>
+
+    <nav class="navigation" role="tablist" aria-label="Разделы">
+      <button id="tab-study" class="nav-tab active" role="tab" aria-selected="true" aria-controls="panel-study" data-tab="study"><span aria-hidden="true">▤</span> Подготовка</button>
+      <button id="tab-calendar" class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-calendar" tabindex="-1" data-tab="calendar"><span aria-hidden="true">▦</span> Расписание</button>
+      <span class="navigation-line" aria-hidden="true"></span>
+    </nav>
+
+    <main>
+      <section id="panel-study" role="tabpanel" aria-labelledby="tab-study">
+        <div class="page-heading">
+          <div><h1><span>Подготовка</span></h1><p class="page-description">Конспект, выжимка, тезисы и тест по твоему материалу.</p></div>
+          <div class="companion" aria-hidden="true"><img src="assets/robot.png" alt="" width="256" height="256"></div>
+        </div>
+
+        <div class="workspace">
+          <section class="window source-window" aria-labelledby="source-title">
+            <div class="window-bar"><span>ИСТОЧНИК</span></div>
+            <div class="window-body">
+              <div class="step-heading"><h2 id="source-title">Добавь материал</h2></div>
+              <div class="input-tabs" role="tablist" aria-label="Источник материала">
+                <button class="input-tab active" id="source-tab-text" role="tab" aria-selected="true" aria-controls="source-text" data-source="text">Текст</button>
+                <button class="input-tab" id="source-tab-photo" role="tab" aria-selected="false" aria-controls="source-photo" tabindex="-1" data-source="photo">Фото</button>
+                <button class="input-tab" id="source-tab-link" role="tab" aria-selected="false" aria-controls="source-link" tabindex="-1" data-source="link">Ссылка</button>
+              </div>
+              <div class="input-panel" id="source-text" role="tabpanel" aria-labelledby="source-tab-text">
+                <label class="sr-only" for="material">Текст для подготовки</label><textarea id="material" placeholder="Вставь текст лекции, параграфа или своих записей…" maxlength="50000"></textarea>
+                <div class="field-bottom"><span id="char-count">0 / 50 000</span></div>
+              </div>
+              <div class="input-panel" id="source-photo" role="tabpanel" aria-labelledby="source-tab-photo" hidden>
+                <label class="upload-area" id="drop-area" for="photo-file"><span class="upload-symbol" aria-hidden="true">↥</span><b>Перетащи фото сюда</b><span>или нажми, чтобы выбрать файл</span><small>JPG, PNG, WEBP · до 10 МБ</small></label><input class="sr-only" id="photo-file" type="file" accept="image/*">
+                <div id="photo-preview" class="photo-preview" hidden><img id="preview-image" alt="Выбранное фото материала"><span id="file-name"></span><button id="remove-photo" class="small-button" type="button">Убрать ×</button></div>
+                <p id="file-error" class="field-error" role="alert"></p>
+              </div>
+              <div class="input-panel" id="source-link" role="tabpanel" aria-labelledby="source-tab-link" hidden>
+                <label class="field-label" for="lecture-link">Ссылка на лекцию</label><input id="lecture-link" type="url" placeholder="https://…" autocomplete="url"><p class="field-hint">Текстовая страница или видео.</p>
+              </div>
+              <p id="source-info" class="source-info" hidden></p>
+            </div>
+          </section>
+
+          <section class="window settings-window" aria-labelledby="format-title">
+            <div class="window-bar"><span>ФОРМАТ</span></div>
+            <div class="window-body">
+              <div class="step-heading"><h2 id="format-title">Что подготовить?</h2></div>
+              <div class="format-tabs" role="tablist" aria-label="Режим подготовки">
+                <button class="format-tab active" id="format-tab-material" role="tab" aria-selected="true" aria-controls="format-material" data-mode="material"><b>Материал</b></button>
+                <button class="format-tab" id="format-tab-test" role="tab" aria-selected="false" aria-controls="format-test" tabindex="-1" data-mode="test"><b>Тест</b></button>
+              </div>
+              <div id="format-material" role="tabpanel" aria-labelledby="format-tab-material">
+                <div class="material-includes"><p class="includes-title">В одном материале:</p><ul><li><b>Конспект</b> - главное по разделам</li><li><b>Выжимка</b> - коротко о главном</li><li><b>Тезисы</b> - основные мысли списком</li></ul></div>
+              </div>
+              <div id="format-test" role="tabpanel" aria-labelledby="format-tab-test" hidden>
+                <fieldset><legend>Сложность</legend><div class="choice-group"><label><input type="radio" name="difficulty" value="easy"><span>Легко</span></label><label><input type="radio" name="difficulty" value="medium" checked><span>Средне</span></label><label><input type="radio" name="difficulty" value="hard"><span>Сложно</span></label></div></fieldset>
+                <fieldset><legend>Количество вопросов</legend><div class="choice-group"><label><input type="radio" name="count" value="5"><span>5</span></label><label><input type="radio" name="count" value="10" checked><span>10</span></label><label><input type="radio" name="count" value="15"><span>15</span></label></div></fieldset>
+                <p class="test-note">Тест будет составлен по тому же источнику.</p>
+              </div>
+              <button id="prepare-button" class="primary-button" type="button"><span id="prepare-label">Подготовить материал</span><span aria-hidden="true">→</span></button>
+              <button id="cancel-generation" class="small-button cancel-generation" type="button" hidden>Отмена</button>
+              <p class="availability" id="api-availability" hidden></p>
+            </div>
+          </section>
+        </div>
+
+        <section id="saved-study" class="window" hidden><div class="window-bar">СОХРАНЁННОЕ</div><div class="window-body" id="saved-study-list"></div></section>
+        <section class="window result-window" aria-labelledby="result-title">
+          <div class="window-bar"><span id="result-title">РЕЗУЛЬТАТ</span><span class="result-status" id="result-status"></span></div>
+          <div id="work-progress" class="work-progress" hidden>
+            <p id="progress-message" role="status"></p>
+            <div id="progress-track" class="progress-track" role="progressbar" aria-label="Подготовка материала" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span id="progress-fill" class="progress-fill"><span class="progress-active" aria-hidden="true"></span></span></div>
+            <ol class="progress-stages" aria-hidden="true"><li>Материал</li><li>Подготовка</li><li>Оформление</li></ol>
+          </div>
+          <div class="result-empty" id="result-empty"><img src="assets/folder.png" alt="" width="72" height="72"><div><h2 id="result-heading">Здесь появится результат</h2><p id="result-message" aria-live="polite">Сначала добавь материал.</p></div></div>
+          <div id="result-content" class="result-content" hidden><div id="material-output" hidden></div><div id="quiz-output" hidden></div></div>
+        </section>
+      </section>
+
+      <section id="panel-calendar" role="tabpanel" aria-labelledby="tab-calendar" hidden>
+        <div class="page-heading schedule-heading"><div><h1><span>Расписание</span></h1><p class="page-description">Занятия, планы и олимпиады. <button class="schedule-help-button" id="schedule-help-open" type="button" aria-label="Как пользоваться расписанием" title="Как пользоваться расписанием">?</button></p></div><div class="schedule-actions"><button class="small-button" id="import-olympiad">Олимпиада по ссылке</button><button class="primary-button" id="new-event">+ Событие</button></div></div>
+        <div class="schedule-toolbar"><div class="input-tabs" aria-label="Вид расписания"><button class="input-tab active" data-view="month" aria-pressed="true">Месяц</button><button class="input-tab" data-view="agenda" aria-pressed="false">Список</button><button class="input-tab" data-view="olympiads" aria-pressed="false">Олимпиады</button></div><label class="schedule-search"><span class="sr-only">Поиск событий</span><input id="schedule-search" placeholder="Найти событие…" type="search"></label></div>
+        <p id="schedule-error" class="field-error" role="alert" hidden></p>
+        <div id="calendar-month-view" class="calendar-layout">
+          <section class="window calendar-window" aria-label="Календарь месяца"><div class="window-bar"><span>МОИ ПЛАНЫ</span><span id="month-count"></span></div><div class="window-body"><div class="month-toolbar"><h2 id="month-label"></h2><div><button class="small-button" id="previous-month" aria-label="Предыдущий месяц">←</button><button class="small-button" id="today-button">Сегодня</button><button class="small-button" id="next-month" aria-label="Следующий месяц">→</button></div></div><div class="weekdays" aria-hidden="true"><span>ПН</span><span>ВТ</span><span>СР</span><span>ЧТ</span><span>ПТ</span><span>СБ</span><span>ВС</span></div><div id="month-grid" class="month-grid" aria-label="Даты месяца"></div></div></section>
+          <aside class="window day-window"><div class="window-bar"><span>СОБЫТИЯ ДНЯ</span></div><div class="window-body"><h2 id="selected-date"></h2><div id="day-events"></div><button class="small-button add-day-event" id="add-day-event">+ Добавить на этот день</button></div></aside>
+        </div>
+        <section id="calendar-agenda-view" class="window" hidden><div class="window-bar"><span>БЛИЖАЙШИЕ 60 ДНЕЙ</span></div><div class="window-body" id="agenda-events"></div></section>
+        <section id="calendar-olympiads-view" hidden><div class="olympiad-toolbar"><label><input type="checkbox" id="show-closed"> Показать закрытые</label><button class="small-button" id="new-olympiad">+ Олимпиада вручную</button></div><div id="olympiad-list"></div></section>
+        <p class="calendar-storage-note" hidden>Расписание сохраняется для этого браузера. <button class="text-button" id="export-calendar">Скачать копию</button> · <label class="text-button">Восстановить из файла<input type="file" id="restore-calendar" accept="application/json,.json" hidden></label></p>
+      </section>
+      <dialog id="event-dialog" class="calendar-dialog" aria-labelledby="event-editor-title">
+        <form id="event-form" class="calendar-form">
+          <div class="dialog-heading"><h2 id="event-editor-title">Новое событие</h2><button class="small-button" type="button" data-close="event-dialog" aria-label="Закрыть редактор">×</button></div>
+          <label id="event-scope-label" hidden>Изменить<select id="event-scope"><option value="one">Только это событие</option><option value="series">Всю серию</option></select></label>
+          <label>Название<input name="title" required maxlength="180" placeholder="Например, подготовка к физике"></label>
+          <fieldset id="stage-subjects" hidden><legend>Для каких предметов этот этап?</legend><p class="field-hint">Ничего не выбрано - общий этап для всех предметов.</p><div id="stage-subject-options" class="subject-options"></div></fieldset>
+          <label>Описание<textarea name="description" maxlength="12000" placeholder="Задания, заметки, что взять с собой…"></textarea></label>
+          <label class="inline-check"><input type="checkbox" id="event-undated"> Дата пока неизвестна</label>
+          <div class="editor-grid" id="event-dates"><label>Начало<input type="date" name="start" required></label><label>Конец<input type="date" name="end"></label></div>
+          <label class="inline-check"><input type="checkbox" id="event-all-day" checked> Весь день</label>
+          <div class="editor-grid" id="event-times" hidden><label>С<input type="time" name="start_time"></label><label>До<input type="time" name="end_time"></label><label class="span-two">Часовой пояс<input name="timezone" maxlength="80" placeholder="Например, МСК или Новосибирск"></label></div>
+          <div class="editor-grid"><label>Место / площадка<input name="location" maxlength="300"></label><label>Цвет<input type="color" name="color" value="#3977d1"></label></div>
+          <label>Ссылки <span class="field-hint">по одной в строке: название | https://…</span><textarea name="links" class="links-input" placeholder="Регистрация | https://…"></textarea></label>
+          <label>Повторение<select name="frequency"><option value="">Не повторять</option><option value="daily">По дням</option><option value="weekly">По неделям</option><option value="monthly">По месяцам</option><option value="yearly">По годам</option></select></label>
+          <div id="repeat-fields" hidden><div class="editor-grid"><label>Каждые<input type="number" name="interval" min="1" max="365" value="1"></label><label>До даты (необязательно)<input type="date" name="until"></label></div><fieldset id="repeat-weekdays"><legend>Дни недели</legend><div class="weekday-picker"><label><input type="checkbox" name="weekday" value="0"><span>Пн</span></label><label><input type="checkbox" name="weekday" value="1"><span>Вт</span></label><label><input type="checkbox" name="weekday" value="2"><span>Ср</span></label><label><input type="checkbox" name="weekday" value="3"><span>Чт</span></label><label><input type="checkbox" name="weekday" value="4"><span>Пт</span></label><label><input type="checkbox" name="weekday" value="5"><span>Сб</span></label><label><input type="checkbox" name="weekday" value="6"><span>Вс</span></label></div></fieldset><p class="field-hint" id="repeat-hint"></p></div>
+          <label>Напоминание в бот<select name="remind"><option value="">Не напоминать</option><option value="0m">В момент начала</option><option value="15m">За 15 минут</option><option value="30m">За 30 минут</option><option value="1h">За 1 час</option><option value="2h">За 2 часа</option><option value="1d">За 1 день</option></select></label>
+          <label>Статус<select name="status"><option value="planned">В планах</option><option value="done">Выполнено</option><option value="skipped">Пропущено</option></select></label>
+          <p id="event-error" class="field-error" role="alert" hidden></p>
+          <div class="dialog-actions"><button class="small-button danger-button" type="button" id="delete-event" hidden>Удалить</button><button class="small-button" type="button" data-close="event-dialog">Отмена</button><button class="primary-button" type="submit">Сохранить</button></div>
+        </form>
+      </dialog>
+      <button id="import-status" class="small-button import-status" type="button" hidden></button><dialog id="schedule-help" class="calendar-dialog" aria-labelledby="schedule-help-title"><div class="calendar-form"><div class="dialog-heading"><h2 id="schedule-help-title">Расписание</h2><button class="small-button" type="button" data-close="schedule-help" aria-label="Закрыть">×</button></div><p>Добавляй свои события кнопкой «+ Событие». Для занятий можно настроить повторение.</p><p>Добавь олимпиаду по ссылке, проверь найденные этапы и выбери предметы. Статус этапа можно менять в карточке дня или в списке олимпиад.</p><p>Переключай месяц, список и олимпиады кнопками над календарём. Нажми на дату, чтобы увидеть её события.</p></div></dialog><dialog id="import-dialog" class="calendar-dialog" aria-labelledby="import-title"><div class="calendar-form"><div class="dialog-heading"><h2 id="import-title">Олимпиада по ссылке</h2><button class="small-button" data-close="import-dialog" aria-label="Закрыть импорт">×</button></div><form id="import-form"><label>Сайт олимпиады или PDF<input type="url" name="url" required placeholder="https://…"></label><button class="primary-button" id="parse-olympiad">Разобрать сайт</button></form><div id="import-progress" class="import-progress" hidden><p role="status">Ищем расписание и собираем этапы… Это может занять до 5 минут.</p><div class="progress-track"><span class="progress-active"></span></div><button class="small-button" id="minimize-import" type="button">Свернуть</button> <button class="small-button" id="cancel-import" type="button">Отменить разбор</button></div><p id="import-error" class="field-error" role="alert" hidden></p></div></dialog>
+      <dialog id="olympiad-dialog" class="calendar-dialog" aria-labelledby="olympiad-title">
+        <form id="olympiad-form" class="calendar-form">
+          <div class="dialog-heading">
+            <h2 id="olympiad-title">Олимпиада</h2>
+            <button type="button" class="small-button" data-close="olympiad-dialog" aria-label="Закрыть олимпиаду">×</button>
+          </div>
+          <label>Название<input name="title" required maxlength="180"></label>
+          <label>Описание<textarea name="description" maxlength="12000"></textarea></label>
+          <label>Статус участия
+            <select name="status">
+              <option value="active">Участвую</option>
+              <option value="completed">Завершена</option>
+              <option value="eliminated">Выбыл(а)</option>
+              <option value="archived">В архиве</option>
+            </select>
+          </label>
+          <label>Важные ссылки<textarea name="links" class="links-input" placeholder="Сайт | https://…"></textarea></label>
+          <section class="subject-editor">
+            <label for="subject-names">Предметы <span class="field-hint">по одному в строке</span></label>
+            <textarea id="subject-names" class="links-input" placeholder="Математика&#10;Физика"></textarea>
+            <fieldset id="subject-selection-field" hidden>
+              <legend>В каких предметах участвуешь?</legend>
+              <div id="subject-selection" class="subject-options"></div>
+            </fieldset>
+          </section>
+          <div id="import-sources"></div>
+          <div id="draft-stages"></div>
+          <button type="button" class="small-button" id="add-stage">+ Этап</button>
+          <p id="olympiad-error" class="field-error" role="alert" hidden></p>
+          <div class="dialog-actions">
+            <button type="button" class="small-button danger-button" id="delete-olympiad" hidden>Удалить олимпиаду</button>
+            <button type="button" class="small-button" data-close="olympiad-dialog">Отмена</button>
+            <button type="submit" class="primary-button">Сохранить</button>
+          </div>
+        </form>
+      </dialog>
+    </main>
+    <footer><span>ИИмогатор / 2026</span></footer>
+  </div>
+</body>
+</html>

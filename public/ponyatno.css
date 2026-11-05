@@ -1,0 +1,5 @@
+.понятно-режим .brand { position: relative; align-items: center; gap: 14px; }
+.понятно-логотип { position: relative; display: inline-flex; flex: none; }
+.понятно-логотип::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 4px; background: var(--ponyatno-stroke, #fff); transform: rotate(-3deg); pointer-events: none; }
+.понятно-режим .brand::after { content: "Понятный логотип"; color: var(--text); font: 10px/1.7 var(--pixel); max-width: 180px; }
+@media (max-width: 650px) { .понятно-режим .brand::after { font-size: 7px; max-width: 90px; } .понятно-режим .brand { gap: 7px; } }

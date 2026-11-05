@@ -1,0 +1,8 @@
+{$SITE_DOMAIN} {
+    request_body {
+        max_size 12MiB
+    }
+    reverse_proxy web:8080 {
+        header_up X-Real-IP {remote_host}
+    }
+}

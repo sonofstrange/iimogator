@@ -1,0 +1,15 @@
+.git
+.openai
+*.zip
+README.txt
+.env
+.env.*
+__pycache__
+tests
+data
+
+.venv
+
+.idea
+
+node_modules
