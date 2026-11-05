@@ -75,6 +75,31 @@ def check_event(event):
                 raise HTTPException(422, 'Неверные дни недели')
 
 
+def normalize_subject(name):
+    s = name.strip()
+    lower = s.lower()
+    if lower in ('программирование', 'информатика и икт', 'ит', 'it', 'разработка'):
+        return 'Информатика'
+    if lower in ('алгебра', 'геометрия', 'высшая математика'):
+        return 'Математика'
+    if lower in ('русский',):
+        return 'Русский язык'
+    return s[:1].upper() + s[1:] if s else s
+
+
+def normalize_subjects_list(subjects):
+    cleaned = []
+    seen = set()
+    for sub in subjects or []:
+        if not isinstance(sub, str):
+            continue
+        norm = normalize_subject(sub)
+        if norm and norm.lower() not in seen:
+            seen.add(norm.lower())
+            cleaned.append(norm)
+    return cleaned
+
+
 def parse_draft(data):
     if not isinstance(data, dict):
         raise ValueError('Ожидался JSON объект')
@@ -94,11 +119,19 @@ def parse_draft(data):
             val = stage.get(key)
             if isinstance(val, str) and val:
                 stage[key] = time.fromisoformat(val)
+    if isinstance(data.get('olympiad'), dict) and 'subjects' in data['olympiad']:
+        data['olympiad']['subjects'] = normalize_subjects_list(data['olympiad']['subjects'])
+    for stage in data.get('stages', []):
+        if isinstance(stage, dict) and 'subjects' in stage:
+            stage['subjects'] = normalize_subjects_list(stage['subjects'])
     draft = OlympiadDraft.model_validate(data)
+    draft.olympiad.subjects = normalize_subjects_list(draft.olympiad.subjects)
     for stage in draft.stages:
-        for subject in (stage.subjects or []):
+        stage.subjects = normalize_subjects_list(stage.subjects or [])
+        for subject in stage.subjects:
             if subject not in draft.olympiad.subjects:
                 draft.olympiad.subjects.append(subject)
+    draft.olympiad.subjects = normalize_subjects_list(draft.olympiad.subjects)
     return draft
 
 
