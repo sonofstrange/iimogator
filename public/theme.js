@@ -10,7 +10,7 @@ function applyTheme() {
     link.media = darkTheme ? 'not all' : 'all';
   }
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = darkTheme ? '#08071d' : '#a79cdb';
+  if (meta) meta.content = darkTheme ? '#08071d' : '#968dc4';
 
   const button = document.getElementById('theme-toggle');
   if (!button) return;

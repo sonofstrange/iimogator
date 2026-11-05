@@ -1,14 +1,14 @@
 :root {
   color-scheme: light;
   --ponyatno-stroke: #111;
-  --bg: #a79cdb;
-  --surface: #d4eaf5;
-  --edge: #3c72bd;
+  --bg: #968dc4;
+  --surface: #d8edf7;
+  --edge: #2762e8;
   --text: #122e61;
   --muted: #48618a;
   --purple: #7358c6;
   --pink: #d431a1;
-  --blue: #1659cd;
+  --blue: #1f57d6;
 }
 
 body { background: var(--bg); color: var(--text); }
@@ -30,8 +30,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .companion img { filter: drop-shadow(4px 5px 0 #7384bd); }
 
 .window { background: var(--surface); border-color: var(--edge); box-shadow: 3px 3px #687fbe; }
-.window-bar { background: #acd3ed; border-color: #5182bd; color: #173d78; }
-.window-bar > span:last-child { color: #3b608e; }
+.window-bar { background: #2563eb; border-color: #1a4ebd; color: #ffffff; }
+.window-bar > span:last-child { color: #d0e4ff; }
 .input-tab { color: #3f5986; }
 .input-tab:hover { background: #c3e4f4; }
 .input-tab.active { background: #b8d9f2; color: #174ea5; border-color: #4b81c9; box-shadow: 2px 2px #8baed4; }
