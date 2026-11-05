@@ -9,7 +9,7 @@ import uuid
 from contextlib import contextmanager
 from datetime import date, time
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qs, quote_plus, urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -239,6 +239,81 @@ def navigation_candidates(links, seen, season_start, allow_history=False):
     return result[:10]
 
 
+
+def is_spa_or_empty(text, links):
+    clean = text.strip()
+    spa_markers = (
+        'включите javascript', 'enable javascript',
+        'загрузка страницы', 'loading page',
+        'это может занять несколько секунд', 'пожалуйста, подождите'
+    )
+    lower = clean.lower()
+    if any(marker in lower for marker in spa_markers) and len(clean) < 400:
+        return True
+    if len(links) == 0 and len(clean) < 180:
+        return True
+    return False
+
+
+def search_query_from_url(url, page_title=''):
+    parsed = urlparse(url)
+    slugs = [part for part in parsed.path.split('/') if part and part not in ('events', 'event', 'olympiads', 'olympiad', 'ru', 'en')]
+    parts = []
+    if slugs:
+        last = slugs[-1]
+        tokens = re.split(r'[-_.]', last)
+        for t in tokens:
+            tl = t.lower()
+            if tl == 'nsk':
+                parts.extend(['nsk', 'новосибирск'])
+            elif tl == 'spb':
+                parts.extend(['spb', 'петербург'])
+            elif tl == 'msk':
+                parts.extend(['msk', 'москва'])
+            elif tl not in ('html', 'htm', 'php', 'index'):
+                parts.append(t)
+    if page_title and len(page_title) > 3 and not any(k in page_title.lower() for k in ('загрузка', 'loading', '404', 'главная')):
+        parts.insert(0, page_title)
+    if not parts:
+        parts.append(parsed.hostname or '')
+    parts.append('олимпиада')
+    return ' '.join(parts)
+
+
+def web_search_links(query, exclude_host=None):
+    url = f'https://html.duckduckgo.com/html/?q={quote_plus(query)}'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+    }
+    try:
+        with httpx.Client(timeout=10, follow_redirects=True, headers=headers) as client:
+            resp = client.get(url)
+            if resp.status_code != 200:
+                return []
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        results = []
+        for item in soup.select('.result'):
+            title_el = item.select_one('.result__title a')
+            if not title_el:
+                continue
+            href = title_el.get('href', '')
+            if 'uddg=' in href:
+                parsed = parse_qs(urlparse(href).query)
+                real_url = parsed.get('uddg', [href])[0]
+            else:
+                real_url = href
+            if not real_url.startswith(('http://', 'https://')):
+                continue
+            cand_host = (urlparse(real_url).hostname or '').lower()
+            if exclude_host and (cand_host == exclude_host or cand_host.endswith('.' + exclude_host)):
+                continue
+            title = title_el.get_text(' ', strip=True)
+            results.append((title, real_url))
+        return results
+    except Exception:
+        return []
+
 async def olympiad_source(url, ask_model):
     try:
         text, final_url, links = await asyncio.to_thread(page_text, url)
@@ -250,6 +325,26 @@ async def olympiad_source(url, ask_model):
     seen = {url, final_url}
     unavailable = []
     discovered = list(links)
+
+    if is_spa_or_empty(text, links):
+        query = search_query_from_url(final_url)
+        search_results = await asyncio.to_thread(web_search_links, query, (urlparse(final_url).hostname or '').lower())
+        found_count = 0
+        for stitle, surl in search_results[:4]:
+            try:
+                cand_text, cand_url, cand_links = await asyncio.to_thread(page_text, surl)
+                if len(cand_text.strip()) >= 200 and cand_url not in seen:
+                    parts.append(f'СТРАНИЦА ИЗ ПОИСКА {cand_url}\n{schedule_excerpt(cand_text, 14000)}')
+                    pages.append(Link(title=f'Поиск: {stitle[:60]}', url=cand_url))
+                    discovered.extend(cand_links)
+                    seen.add(cand_url)
+                    found_count += 1
+                    if found_count >= 2:
+                        break
+            except Exception:
+                continue
+        if found_count == 0 and len(text.strip()) < 100:
+            raise SourceError('Страница загружается через JavaScript (SPA) и не содержит текста в исходном коде. Вставьте прямую ссылку на регламент или скопируйте текст расписания.')
     current = date.today()
     season_start = current.year if current.month >= 8 else current.year - 1
     requested_year = re.search(r'(?:year=|/)(20\d{2})(?:\D|$)', final_url)
