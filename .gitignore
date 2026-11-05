@@ -6,5 +6,5 @@ Thumbs.db
 __pycache__/
 data/
 tests/
-*.md
-README*
+VDS.md
+README.txt
