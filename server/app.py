@@ -233,7 +233,7 @@ async def ask_model(source, instruction, schema, validator, max_tokens=16000, op
         content.append({'type': 'image_url', 'image_url': {'url': source.image}})
     system = SYSTEM
     if operation == 'calendar':
-        system = "Ты помощник по расписанию. Извлеки структурированную информацию об олимпиаде и этапах строго в JSON по схеме."
+        system = "Ты помощник по расписанию. Извлеки структурированную информацию об олимпиаде и этапах строго в JSON по схеме. В поле subjects указывай только стандартные общеобразовательные школьные предметы (Информатика, Математика, Физика и т.д.), обобщая специализации (программирование -> Информатика). Не создавай дублирующие предметы-синонимы."
     messages = [{'role': 'system', 'content': system}, {'role': 'user', 'content': content}]
     endpoint = os.getenv('AI_BASE_URL', 'https://router.cheap/v1').rstrip('/') + '/chat/completions'
     response_timeout = 90 if operation == 'grading' else 180
