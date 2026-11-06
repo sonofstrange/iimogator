@@ -413,8 +413,13 @@ async function loadSavedStudy() {
 
   const root = byId('saved-study-list');
   root.replaceChildren();
-  byId('saved-study').hidden = !items.length;
-  if (!items.length) return;
+  byId('saved-study').hidden = false;
+  if (!items.length) {
+    const emptyP = element('p', 'schedule-empty', 'Пока нет сохранённых генераций.');
+    emptyP.id = 'saved-empty';
+    root.append(emptyP);
+    return;
+  }
 
   const header = element('div', 'saved-toolbar');
   const clearBtn = element('button', 'text-button', 'Очистить всё');
