@@ -547,10 +547,12 @@ async def max_webhook(request: Request):
     message = data.get('message') or {}
     sender = message.get('sender') or message.get('from') or {}
     user_id = sender.get('user_id') or sender.get('id') or data.get('user_id')
+    chat_id = message.get('chat_id') or data.get('chat_id')
 
     token = os.getenv('MAX_BOT_TOKEN')
-    if token and user_id:
-        url = f'https://platform-api2.max.ru/messages?user_id={user_id}'
+    if token and (chat_id or user_id):
+        target = f'chat_id={chat_id}' if chat_id else f'user_id={user_id}'
+        url = f'https://platform-api2.max.ru/messages?{target}'
         reply_payload = {
             'text': 'Привет! Я ИИмогатор - помогу подготовиться к занятиям и олимпиадам.\n\nНажми кнопку ниже, чтобы запустить приложение:',
             'attachments': [
@@ -560,9 +562,9 @@ async def max_webhook(request: Request):
                         'buttons': [
                             [
                                 {
-                                    'type': 'link',
+                                    'type': 'open_app',
                                     'text': 'Открыть ИИмогатор',
-                                    'url': 'https://iimogator.rusanoff.ru/'
+                                    'web_app': 'ideya_fiks_155_bot'
                                 }
                             ]
                         ]
