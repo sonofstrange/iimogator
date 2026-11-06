@@ -16,17 +16,24 @@ function element(tag, className, text) {
 }
 
 function snapshot() {
+  const currentPhotos = (typeof window.getPhotos === 'function') ? window.getPhotos() : (typeof photos !== 'undefined' ? photos : (photo ? [photo] : []));
   return {
     kind: source,
     text: material.value.trim(),
     url: byId('lecture-link').value.trim(),
-    photo
+    photos: currentPhotos.slice(),
+    photoCount: currentPhotos.length
   };
 }
 
 function sameSource(a, b) {
   if (!a || !b || a.kind !== b.kind) return false;
-  if (a.kind === 'photo') return a.photo === b.photo;
+  if (a.kind === 'photo') {
+    if ((a.photoCount || 0) !== (b.photoCount || 0)) return false;
+    const aList = a.photos || [];
+    const bList = b.photos || [];
+    return aList.length === bList.length && aList.every((f, i) => f === bList[i]);
+  }
   if (a.kind === 'text') return a.text === b.text;
   return a.url === b.url;
 }
@@ -112,7 +119,7 @@ byId('prepare-button').addEventListener('click', async () => {
   window.maxHaptic?.('light');
   if (activeRequest) return;
   const input = snapshot();
-  if (input.kind === 'text' && !input.text || input.kind === 'photo' && !input.photo || input.kind === 'link' && !input.url) {
+  if (input.kind === 'text' && !input.text || input.kind === 'photo' && !input.photos.length || input.kind === 'link' && !input.url) {
     message('Добавь материал', 'Вставь текст, выбери фото или укажи ссылку.', true);
     return;
   }
@@ -135,7 +142,10 @@ byId('prepare-button').addEventListener('click', async () => {
       form.append('kind', input.kind);
       if (input.kind === 'text') form.append('text', input.text);
       if (input.kind === 'link') form.append('url', input.url);
-      if (input.kind === 'photo') form.append('file', input.photo);
+      if (input.kind === 'photo') {
+        input.photos.forEach(f => form.append('files', f));
+        if (input.photos[0]) form.append('file', input.photos[0]);
+      }
       cachedSource = {...await api('/api/sources', form, controller.signal, true), snapshot: input};
     }
     if (generatedSourceId !== cachedSource.source_id) {
@@ -322,6 +332,27 @@ fetch(appBase + '/api/status').then(response => response.json()).then(status => 
   byId('api-availability').hidden = false;
 });
 
+async function deleteSavedItem(id) {
+  if (!window.maxLaunchData) return;
+  window.sfx?.play('click');
+  await fetch(appBase + '/api/study/saved/' + encodeURIComponent(id), {
+    method: 'DELETE',
+    headers: {'X-Max-Data': window.maxLaunchData || ''}
+  }).catch(() => {});
+  loadSavedStudy().catch(() => {});
+}
+
+async function clearAllSaved() {
+  if (!window.maxLaunchData) return;
+  if (!confirm('Очистить всю историю сохранённых материалов?')) return;
+  window.sfx?.play('click');
+  await fetch(appBase + '/api/study/saved', {
+    method: 'DELETE',
+    headers: {'X-Max-Data': window.maxLaunchData || ''}
+  }).catch(() => {});
+  loadSavedStudy().catch(() => {});
+}
+
 async function loadSavedStudy() {
   if (!window.maxLaunchData) return;
   const response = await fetch(appBase + '/api/study/saved', {headers: {'X-Max-Data': window.maxLaunchData || ''}});
@@ -330,8 +361,19 @@ async function loadSavedStudy() {
   const root = byId('saved-study-list');
   root.replaceChildren();
   byId('saved-study').hidden = !items.length;
+  if (!items.length) return;
+
+  const header = element('div', 'saved-toolbar');
+  const clearBtn = element('button', 'text-button', 'Очистить всё');
+  clearBtn.type = 'button';
+  clearBtn.addEventListener('click', clearAllSaved);
+  header.append(clearBtn);
+  root.append(header);
+
+  const container = element('div', 'saved-items-container');
   for (const item of items) {
-    const button = element('button', 'small-button', (item.kind === 'quiz' ? 'Тест: ' : 'Конспект: ') + item.title);
+    const row = element('div', 'saved-item-row');
+    const button = element('button', 'small-button saved-item-btn', (item.kind === 'quiz' ? 'Тест: ' : 'Конспект: ') + item.title);
     button.type = 'button';
     button.addEventListener('click', () => {
       byId('result-empty').hidden = true;
@@ -342,7 +384,16 @@ async function loadSavedStudy() {
       byId('result-status').textContent = 'ГОТОВО';
       byId('result-content').scrollIntoView({block: 'start', behavior: 'smooth'});
     });
-    root.append(button, document.createTextNode(' '));
+    const delBtn = element('button', 'small-button saved-del-btn', '×');
+    delBtn.type = 'button';
+    delBtn.title = 'Удалить';
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteSavedItem(item.id);
+    });
+    row.append(button, delBtn);
+    container.append(row);
   }
+  root.append(container);
 }
 loadSavedStudy().catch(() => {});

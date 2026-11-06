@@ -34,10 +34,14 @@
 .settings-window .step-heading::after { background-image: url("assets/magnifier.png"); }
 .day-window .window-body:has(.schedule-empty) { position: relative; }
 .day-window .window-body:has(.schedule-empty)::after {
-  content: ""; position: absolute; top: 18px; right: 18px; width: 92px; height: 75px;
-  background: url("assets/gamepad.png") center / contain no-repeat; pointer-events: none;
+  content: ""; position: absolute; top: 14px; right: 14px; width: 68px; height: 56px;
+  background: url("assets/gamepad.png") center / contain no-repeat; pointer-events: none; opacity: 0.85;
 }
-.day-window .window-body:has(.schedule-empty) h2 { padding-right: 95px; }
+.day-window .window-body:has(.schedule-empty) h2,
+.day-window .window-body:has(.schedule-empty) .schedule-empty,
+.day-window .window-body:has(.schedule-empty) .day-empty {
+  padding-right: 76px;
+}
 @media (max-width: 650px) {
   .page-heading h1 span { width: min(250px, 60vw); }
   #panel-calendar .page-heading h1 span { width: min(250px, 60vw); }

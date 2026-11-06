@@ -4,6 +4,8 @@ try {
 } catch (_) {}
 
 function applyTheme() {
+  document.documentElement.classList.toggle('dark-theme', darkTheme);
+  document.documentElement.classList.toggle('light-theme', !darkTheme);
   const link = document.getElementById('light-theme') || document.getElementById('classic-theme');
   if (link) {
     link.disabled = darkTheme;

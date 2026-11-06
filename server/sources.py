@@ -28,7 +28,12 @@ class Source:
     kind: str
     text: str = ''
     image: str = ''
+    images: list = None
     url: str = ''
+
+    def __post_init__(self):
+        if self.images is None:
+            self.images = [self.image] if self.image else []
 
 
 def checked_text(text):

@@ -592,7 +592,8 @@ function openEvent(event = null, occurrenceDay = selected, draftIndex = null) {
   $('delete-event').hidden = !event;
   $('event-scope-label').hidden = !event?.repeat || draftIndex !== null;
   $('event-scope').value = 'one';
-  let values = event || {start: occurrenceDay, color: '#3977d1', status: 'planned'};
+  const defaultDay = (!event && occurrenceDay && occurrenceDay < localDay()) ? localDay() : occurrenceDay;
+  let values = event || {start: defaultDay, color: '#3977d1', status: 'planned'};
   if (event?.repeat && draftIndex === null) values = occurrenceValues(event, occurrenceDay);
   fillEvent(values);
   const group = draftIndex !== null ? draft.olympiad : schedule.olympiads.find(item => item.id === event?.olympiad_id);

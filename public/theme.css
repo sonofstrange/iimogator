@@ -156,3 +156,44 @@ footer { color: #444379; }
 .event-actions .small-button[aria-pressed=true] { background: #c9eada; border-color: #64a882; color: #246c4a; }
 .olympiad-more { background: #e4f3fa; border-color: #8bb7d8; color: #235891; }
 .olympiad-more:hover { background: #c7e4f4; }
+
+/* Ensure full consistency across calendar elements in light theme */
+.calendar-window, .day-window, .calendar-dialog {
+  background: var(--surface) !important;
+  border-color: var(--edge) !important;
+}
+.calendar-window .window-body, .day-window .window-body {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+.month-grid {
+  background: #d8edf7 !important;
+  border-color: #8bb4d7 !important;
+}
+.calendar-day {
+  background: #e9f5fb !important;
+  color: #183e73 !important;
+  border-bottom: 1px solid #a2c4df !important;
+  border-right: 1px solid #a2c4df !important;
+}
+.calendar-gap {
+  background: #c5d9ec !important;
+  border-bottom: 1px solid #a2c4df !important;
+  border-right: 1px solid #a2c4df !important;
+}
+.calendar-day.selected {
+  background: #3b77cd !important;
+  color: #ffffff !important;
+}
+.calendar-form input[type=color] {
+  background: #ffffff !important;
+  border-color: #6b9bcf !important;
+}
+.saved-item-btn {
+  background: #d4eaf5 !important;
+  color: #122e61 !important;
+  border-color: #709fd1 !important;
+}
+.saved-item-row {
+  background: transparent !important;
+}

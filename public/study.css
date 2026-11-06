@@ -58,3 +58,18 @@ input[type=radio],input[type=checkbox]{accent-color:#b981ec;min-width:16px;min-h
 
 #work-progress .progress-active{inset:0;width:100%;transform:none;opacity:.45;background-size:22px 100%}
 @media(prefers-reduced-motion:no-preference){#work-progress .progress-active{animation:progress-stripes .7s linear infinite}@keyframes progress-stripes{to{background-position:22px 0}}}
+
+/* Multi-photo previews */
+.photo-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 9px; color: #bca1d3; }
+.photo-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.photo-item { display: flex; align-items: center; gap: 8px; background: #130f24; border: 1px solid #4a385f; padding: 6px 10px; font-size: 8px; max-width: 100%; overflow: hidden; }
+.photo-item img { width: 36px; height: 36px; object-fit: cover; border: 1px solid #665078; flex-shrink: 0; }
+.photo-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
+.photo-item .small-button { padding: 4px 8px; min-width: 22px; font-size: 9px; line-height: 1; }
+
+/* Saved study items toolbar & container */
+.saved-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.saved-items-container { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 4px; }
+.saved-item-row { display: flex; align-items: center; gap: 6px; width: 100%; }
+.saved-item-btn { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; padding: 10px 12px; }
+.saved-del-btn { padding: 8px 10px; font-size: 10px; min-width: 28px; color: #ef9fb9; border-color: #835064; flex-shrink: 0; }

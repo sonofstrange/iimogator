@@ -80,93 +80,147 @@ material.addEventListener('input', () => {
   document.getElementById('char-count').textContent = `${material.value.length.toLocaleString('ru-RU')} / 50 000`;
 });
 const fileInput = document.getElementById('photo-file');
-let photo = null;
-let photoUrl = null;
-function clearPhoto() {
-  if (photoUrl) URL.revokeObjectURL(photoUrl);
-  photoUrl = null;
-  photo = null;
-  fileInput.value = '';
-  document.getElementById('photo-preview').hidden = true;
-  document.getElementById('drop-area').hidden = false;
-  document.getElementById('file-error').textContent = '';
-  window.sfx?.play('click');
+let photos = [];
+let photoUrls = [];
+
+function getPhotos() {
+  return photos;
 }
-function usePhoto(file) {
-  const error = document.getElementById('file-error');
-  error.textContent = '';
-  if (!file) return;
-  const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpe?g|png|webp|bmp|gif|heic)$/i.test(file.name || '');
-  if (!isImage) {
-    error.textContent = 'Выбери фото в формате JPG, PNG или WEBP.';
-    window.sfx?.play('error');
+window.getPhotos = getPhotos;
+
+function renderPhotosList() {
+  const preview = document.getElementById('photo-preview');
+  const list = document.getElementById('photo-list');
+  const countEl = document.getElementById('photo-count');
+  if (!preview) return;
+  if (!photos.length) {
+    preview.hidden = true;
+    if (list) list.replaceChildren();
+    if (countEl) countEl.textContent = '';
     return;
   }
-  const img = new Image();
-  const url = URL.createObjectURL(file);
-  img.onload = () => {
-    URL.revokeObjectURL(url);
-    const maxDim = 1600;
-    let w = img.naturalWidth || img.width;
-    let h = img.naturalHeight || img.height;
-    if (w > maxDim || h > maxDim) {
-      if (w > h) {
-        h = Math.round((h * maxDim) / w);
-        w = maxDim;
-      } else {
-        w = Math.round((w * maxDim) / h);
-        h = maxDim;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      canvas.toBlob(blob => {
-        if (!blob) blob = file;
-        photo = new File([blob], (file.name || 'photo.jpg').replace(/\.[^.]+$/, '.jpg'), {type: 'image/jpeg'});
-        if (photoUrl) URL.revokeObjectURL(photoUrl);
-        photoUrl = URL.createObjectURL(photo);
-        document.getElementById('preview-image').src = photoUrl;
-        document.getElementById('file-name').textContent = file.name || 'photo.jpg';
-        document.getElementById('photo-preview').hidden = false;
-        document.getElementById('drop-area').hidden = true;
-        window.sfx?.play('pop');
-        maxHaptic('light');
-        if (typeof sourceChanged === 'function') sourceChanged();
-      }, 'image/jpeg', 0.88);
-    } else {
-      photo = file;
-      if (photoUrl) URL.revokeObjectURL(photoUrl);
-      photoUrl = URL.createObjectURL(file);
-      document.getElementById('preview-image').src = photoUrl;
-      document.getElementById('file-name').textContent = file.name;
-      document.getElementById('photo-preview').hidden = false;
-      document.getElementById('drop-area').hidden = true;
-      window.sfx?.play('pop');
-      maxHaptic('light');
-      if (typeof sourceChanged === 'function') sourceChanged();
-    }
-  };
-  img.onerror = () => {
-    URL.revokeObjectURL(url);
-    photo = file;
-    if (photoUrl) URL.revokeObjectURL(photoUrl);
-    photoUrl = URL.createObjectURL(file);
-    document.getElementById('preview-image').src = photoUrl;
-    document.getElementById('file-name').textContent = file.name;
-    document.getElementById('photo-preview').hidden = false;
-    document.getElementById('drop-area').hidden = true;
-    window.sfx?.play('pop');
-    maxHaptic('light');
-    if (typeof sourceChanged === 'function') sourceChanged();
-  };
-  img.src = url;
+  preview.hidden = false;
+  if (countEl) countEl.textContent = `Выбрано фото: ${photos.length} / 10`;
+  if (list) {
+    list.replaceChildren();
+    photos.forEach((f, idx) => {
+      const item = document.createElement('div');
+      item.className = 'photo-item';
+      const img = document.createElement('img');
+      img.src = photoUrls[idx];
+      img.alt = f.name;
+      const name = document.createElement('span');
+      name.textContent = f.name;
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'small-button';
+      del.textContent = '×';
+      del.title = 'Удалить это фото';
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removePhotoAt(idx);
+      });
+      item.append(img, name, del);
+      list.append(item);
+    });
+  }
+  const firstImg = document.getElementById('preview-image');
+  if (firstImg && photoUrls[0]) firstImg.src = photoUrls[0];
+  const nameEl = document.getElementById('file-name');
+  if (nameEl) nameEl.textContent = photos.length === 1 ? photos[0].name : `${photos.length} фото выбрано`;
 }
+
+function removePhotoAt(idx) {
+  if (photoUrls[idx]) URL.revokeObjectURL(photoUrls[idx]);
+  photos.splice(idx, 1);
+  photoUrls.splice(idx, 1);
+  renderPhotosList();
+  window.sfx?.play('click');
+  maxHaptic('light');
+  if (typeof sourceChanged === 'function') sourceChanged();
+}
+
+function clearPhoto() {
+  photoUrls.forEach(u => URL.revokeObjectURL(u));
+  photoUrls = [];
+  photos = [];
+  fileInput.value = '';
+  renderPhotosList();
+  document.getElementById('file-error').textContent = '';
+  window.sfx?.play('click');
+  if (typeof sourceChanged === 'function') sourceChanged();
+}
+
+function processImageFile(file) {
+  return new Promise((resolve) => {
+    const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpe?g|png|webp|bmp|gif|heic)$/i.test(file.name || '');
+    if (!isImage) return resolve(null);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const maxDim = 1600;
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => {
+          if (!blob) blob = file;
+          const processed = new File([blob], (file.name || 'photo.jpg').replace(/\.[^.]+$/, '.jpg'), {type: 'image/jpeg'});
+          resolve(processed);
+        }, 'image/jpeg', 0.88);
+      } else {
+        resolve(file);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
+
+async function usePhotos(fileList) {
+  const error = document.getElementById('file-error');
+  if (error) error.textContent = '';
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  for (const file of files) {
+    if (photos.length >= 10) break;
+    const processed = await processImageFile(file);
+    if (processed) {
+      photos.push(processed);
+      photoUrls.push(URL.createObjectURL(processed));
+    }
+  }
+  renderPhotosList();
+  window.sfx?.play('pop');
+  maxHaptic('light');
+  if (typeof sourceChanged === 'function') sourceChanged();
+}
+
 fileInput.addEventListener('change', () => {
-  if (fileInput.files && fileInput.files[0]) usePhoto(fileInput.files[0]);
+  if (fileInput.files && fileInput.files.length) {
+    usePhotos(fileInput.files);
+    fileInput.value = '';
+  }
 });
-document.getElementById('remove-photo').addEventListener('click', clearPhoto);
+
+const removePhotoBtn = document.getElementById('remove-photo');
+if (removePhotoBtn) removePhotoBtn.addEventListener('click', clearPhoto);
+
 const dropArea = document.getElementById('drop-area');
 ['dragenter', 'dragover'].forEach(name => dropArea.addEventListener(name, event => {
   event.preventDefault();
@@ -178,21 +232,35 @@ const dropArea = document.getElementById('drop-area');
 }));
 dropArea.addEventListener('drop', event => {
   event.preventDefault();
-  const file = event.dataTransfer?.files?.[0];
-  if (file) usePhoto(file);
+  const dropped = event.dataTransfer?.files;
+  if (dropped && dropped.length) usePhotos(dropped);
 });
+
 window.addEventListener('paste', event => {
   const items = event.clipboardData?.items;
   if (!items) return;
+  const pastedFiles = [];
   for (const item of items) {
     if (item.type && item.type.startsWith('image/')) {
       const file = item.getAsFile();
-      if (file) {
-        const photoTab = document.querySelector('.input-tab[data-source="photo"]');
-        if (photoTab) photoTab.click();
-        usePhoto(file);
-        break;
-      }
+      if (file) pastedFiles.push(file);
     }
   }
+  if (pastedFiles.length) {
+    const photoTab = document.querySelector('.input-tab[data-source="photo"]');
+    if (photoTab) photoTab.click();
+    usePhotos(pastedFiles);
+  }
 });
+
+function initAutoResize() {
+  const areas = document.querySelectorAll('textarea');
+  areas.forEach(t => {
+    const resize = () => {
+      t.style.height = 'auto';
+      t.style.height = Math.max(t.scrollHeight + 4, 70) + 'px';
+    };
+    t.addEventListener('input', resize);
+  });
+}
+document.addEventListener('DOMContentLoaded', initAutoResize);
