@@ -412,8 +412,8 @@ async function loadSavedStudy() {
   }
 
   const root = byId('saved-study-list');
+  if (!root) return;
   root.replaceChildren();
-  byId('saved-study').hidden = false;
   if (!items.length) {
     const emptyP = element('p', 'schedule-empty', 'Пока нет сохранённых генераций.');
     emptyP.id = 'saved-empty';
@@ -434,6 +434,7 @@ async function loadSavedStudy() {
     const button = element('button', 'small-button saved-item-btn', (item.kind === 'quiz' ? 'Тест: ' : 'Конспект: ') + item.title);
     button.type = 'button';
     button.addEventListener('click', () => {
+      byId('saved-study-dialog')?.close();
       byId('result-empty').hidden = true;
       byId('result-content').hidden = false;
       byId('material-output').hidden = item.kind !== 'material';
@@ -454,4 +455,15 @@ async function loadSavedStudy() {
   }
   root.append(container);
 }
+
+byId('open-saved-study')?.addEventListener('click', () => {
+  window.sfx?.play('click');
+  loadSavedStudy().catch(() => {});
+  const dialog = byId('saved-study-dialog');
+  if (dialog) {
+    dialog.showModal();
+    if (window.WebApp && window.WebApp.BackButton) window.WebApp.BackButton.show();
+  }
+});
+
 loadSavedStudy().catch(() => {});

@@ -8,7 +8,7 @@
   <script src="https://st.max.ru/js/max-web-app.js"></script>
   <link rel="stylesheet" href="assets/pixel-font.css">
   <link rel="stylesheet" href="styles.css?v=8">
-  <link rel="stylesheet" href="study.css?v=9">
+  <link rel="stylesheet" href="study.css?v=10">
   <link rel="stylesheet" href="ponyatno.css?v=4">
   <link rel="stylesheet" href="calendar.css?v=8">
   <link rel="stylesheet" href="theme.css?v=8" id="light-theme">
@@ -18,7 +18,7 @@
   <script src="app.js?v=8" defer></script>
   <script src="ponyatno.js?v=5" defer></script>
   <script src="matching.js?v=3" defer></script>
-  <script src="study.js?v=9" defer></script>
+  <script src="study.js?v=10" defer></script>
   <script type="module" src="calendar.js?v=8"></script>
 </head>
 <body>
@@ -47,8 +47,14 @@
 
     <main>
       <section id="panel-study" role="tabpanel" aria-labelledby="tab-study">
-        <div class="page-heading">
-          <div><h1><span>Подготовка</span></h1><p class="page-description">Конспект, выжимка, тезисы и тест по твоему материалу.</p></div>
+        <div class="page-heading study-heading">
+          <div>
+            <h1><span>Подготовка</span></h1>
+            <p class="page-description">Конспект, выжимка, тезисы и тест по твоему материалу.</p>
+          </div>
+          <div class="study-actions">
+            <button class="small-button" id="open-saved-study" type="button">История генераций</button>
+          </div>
           <div class="companion" aria-hidden="true"><img src="assets/robot.png" alt="" width="256" height="256"></div>
         </div>
 
@@ -104,7 +110,7 @@
           </section>
         </div>
 
-        <section id="saved-study" class="window"><div class="window-bar"><span>ПРОШЛЫЕ ГЕНЕРАЦИИ</span></div><div class="window-body" id="saved-study-list"><p id="saved-empty" class="schedule-empty">Пока нет прошлых генераций.</p></div></section>
+        
         <section class="window result-window" aria-labelledby="result-title">
           <div class="window-bar"><span id="result-title">РЕЗУЛЬТАТ</span><span class="result-status" id="result-status"></span></div>
           <div id="work-progress" class="work-progress" hidden>
@@ -186,6 +192,15 @@
             <button type="submit" class="primary-button">Сохранить</button>
           </div>
         </form>
+      </dialog>
+      <dialog id="saved-study-dialog" class="calendar-dialog" aria-labelledby="saved-study-title">
+        <div class="calendar-form">
+          <div class="dialog-heading">
+            <h2 id="saved-study-title">История генераций</h2>
+            <button class="small-button" type="button" data-close="saved-study-dialog" aria-label="Закрыть">×</button>
+          </div>
+          <div id="saved-study-list"></div>
+        </div>
       </dialog>
     </main>
     <footer><span>ИИмогатор / 2026</span></footer>

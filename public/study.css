@@ -73,3 +73,16 @@ input[type=radio],input[type=checkbox]{accent-color:#b981ec;min-width:16px;min-h
 .saved-item-row { display: flex; align-items: center; gap: 6px; width: 100%; }
 .saved-item-btn { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; padding: 10px 12px; }
 .saved-del-btn { padding: 8px 10px; font-size: 10px; min-width: 28px; color: #ef9fb9; border-color: #835064; flex-shrink: 0; }
+
+
+/* Study header actions */
+.study-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.study-actions { margin-top: 8px; flex-shrink: 0; }
+.study-actions .small-button { padding: 10px 14px; font-size: 9px; }
+#saved-study-dialog { width: min(600px, calc(100% - 24px)); }
+#saved-study-dialog .saved-items-container { max-height: 50vh; }
+@media (max-width: 650px) {
+  .study-heading { flex-direction: column; gap: 14px; }
+  .study-actions { margin-top: 0; }
+  .study-actions .small-button { width: 100%; text-align: center; }
+}
