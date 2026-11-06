@@ -16,7 +16,7 @@ from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -37,6 +37,19 @@ def startup():
         from .reminders import start_reminders_task
         from .calendar import database
         start_reminders_task(database)
+    asyncio.create_task(ensure_max_webhook())
+
+async def ensure_max_webhook():
+    token = os.getenv('MAX_BOT_TOKEN')
+    if not token:
+        return
+    url = 'https://platform-api2.max.ru/subscriptions'
+    payload = {'url': 'https://iimogator.rusanoff.ru/api/max/webhook'}
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=10.0) as client:
+            await client.post(url, headers={'Authorization': token, 'Content-Type': 'application/json'}, json=payload)
+    except Exception:
+        pass
 
 @app.on_event("shutdown")
 def shutdown():
@@ -520,6 +533,49 @@ async def clear_all_saved_study():
         raise HTTPException(401, 'Открой приложение в MAX.')
     with max_db() as db:
         db.execute("DELETE FROM max_study WHERE owner=? AND kind IN ('material', 'quiz')", (current_max.get(),))
+    return {'ok': True}
+
+
+
+@app.post('/api/max/webhook')
+async def max_webhook(request: Request):
+    try:
+        data = await request.json()
+    except Exception:
+        return {'ok': True}
+
+    message = data.get('message') or {}
+    sender = message.get('sender') or message.get('from') or {}
+    user_id = sender.get('user_id') or sender.get('id') or data.get('user_id')
+
+    token = os.getenv('MAX_BOT_TOKEN')
+    if token and user_id:
+        url = f'https://platform-api2.max.ru/messages?user_id={user_id}'
+        reply_payload = {
+            'text': 'Привет! Я ИИмогатор - помогу подготовиться к занятиям и олимпиадам.\n\nНажми кнопку ниже, чтобы запустить приложение:',
+            'attachments': [
+                {
+                    'type': 'inline_keyboard',
+                    'payload': {
+                        'buttons': [
+                            [
+                                {
+                                    'type': 'link',
+                                    'text': 'Открыть ИИмогатор',
+                                    'url': 'https://iimogator.rusanoff.ru/'
+                                }
+                            ]
+                        ]
+                    }
+                }
+            ]
+        }
+        try:
+            async with httpx.AsyncClient(verify=False, timeout=10.0) as client:
+                await client.post(url, headers={'Authorization': token, 'Content-Type': 'application/json'}, json=reply_payload)
+        except Exception:
+            pass
+
     return {'ok': True}
 
 

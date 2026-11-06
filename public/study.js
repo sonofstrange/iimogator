@@ -162,10 +162,12 @@ byId('prepare-button').addEventListener('click', async () => {
       materialData = await api('/api/material', {source_id: cachedSource.source_id}, controller.signal);
       progress('Оформляем материал…', 2);
       renderMaterial(materialData);
+      saveStudyLocally('material', materialData);
     } else {
       quizData = await api('/api/quizzes', {source_id: cachedSource.source_id, ...settings}, controller.signal);
       progress('Оформляем тест…', 2);
       renderQuiz(quizData);
+      saveStudyLocally('quiz', quizData);
     }
   } catch (error) {
     window.sfx?.play('error');
@@ -332,32 +334,83 @@ fetch(appBase + '/api/status').then(response => response.json()).then(status => 
   byId('api-availability').hidden = false;
 });
 
+function getLocalSavedStudy() {
+  try {
+    return JSON.parse(localStorage.getItem('iimogator_saved_study') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function setLocalSavedStudy(items) {
+  try {
+    localStorage.setItem('iimogator_saved_study', JSON.stringify(items.slice(0, 100)));
+  } catch {}
+}
+
+function saveStudyLocally(kind, data) {
+  const items = getLocalSavedStudy();
+  const id = (kind === 'quiz' ? data.quiz_id : data.source_id) || ('local_' + Date.now());
+  const existingIdx = items.findIndex(it => it.id === id);
+  const newItem = {
+    id: id,
+    kind: kind,
+    title: data.title || (kind === 'quiz' ? 'Тест' : 'Конспект'),
+    data: data
+  };
+  if (existingIdx >= 0) {
+    items.splice(existingIdx, 1);
+  }
+  items.unshift(newItem);
+  setLocalSavedStudy(items);
+}
+
 async function deleteSavedItem(id) {
-  if (!window.maxLaunchData) return;
   window.sfx?.play('click');
-  await fetch(appBase + '/api/study/saved/' + encodeURIComponent(id), {
-    method: 'DELETE',
-    headers: {'X-Max-Data': window.maxLaunchData || ''}
-  }).catch(() => {});
+  const items = getLocalSavedStudy().filter(it => it.id !== id);
+  setLocalSavedStudy(items);
+
+  if (window.maxLaunchData) {
+    await fetch(appBase + '/api/study/saved/' + encodeURIComponent(id), {
+      method: 'DELETE',
+      headers: {'X-Max-Data': window.maxLaunchData || ''}
+    }).catch(() => {});
+  }
   loadSavedStudy().catch(() => {});
 }
 
 async function clearAllSaved() {
-  if (!window.maxLaunchData) return;
   if (!confirm('Очистить всю историю сохранённых материалов?')) return;
   window.sfx?.play('click');
-  await fetch(appBase + '/api/study/saved', {
-    method: 'DELETE',
-    headers: {'X-Max-Data': window.maxLaunchData || ''}
-  }).catch(() => {});
+  setLocalSavedStudy([]);
+
+  if (window.maxLaunchData) {
+    await fetch(appBase + '/api/study/saved', {
+      method: 'DELETE',
+      headers: {'X-Max-Data': window.maxLaunchData || ''}
+    }).catch(() => {});
+  }
   loadSavedStudy().catch(() => {});
 }
 
 async function loadSavedStudy() {
-  if (!window.maxLaunchData) return;
-  const response = await fetch(appBase + '/api/study/saved', {headers: {'X-Max-Data': window.maxLaunchData || ''}});
-  if (!response.ok) return;
-  const items = await response.json();
+  let items = [];
+  if (window.maxLaunchData) {
+    try {
+      const response = await fetch(appBase + '/api/study/saved', {headers: {'X-Max-Data': window.maxLaunchData || ''}});
+      if (response.ok) {
+        items = await response.json();
+        setLocalSavedStudy(items);
+      } else {
+        items = getLocalSavedStudy();
+      }
+    } catch {
+      items = getLocalSavedStudy();
+    }
+  } else {
+    items = getLocalSavedStudy();
+  }
+
   const root = byId('saved-study-list');
   root.replaceChildren();
   byId('saved-study').hidden = !items.length;
