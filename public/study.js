@@ -182,7 +182,7 @@ byId('prepare-button').addEventListener('click', async () => {
   showCurrentResult();
   window.sfx?.play('success');
   window.maxHaptic?.('success');
-  
+  loadSavedStudy().catch(() => {});
 });
 
 function renderMaterial(data) {
@@ -332,4 +332,68 @@ fetch(appBase + '/api/status').then(response => response.json()).then(status => 
   byId('api-availability').hidden = false;
 });
 
+async function deleteSavedItem(id) {
+  if (!window.maxLaunchData) return;
+  window.sfx?.play('click');
+  await fetch(appBase + '/api/study/saved/' + encodeURIComponent(id), {
+    method: 'DELETE',
+    headers: {'X-Max-Data': window.maxLaunchData || ''}
+  }).catch(() => {});
+  loadSavedStudy().catch(() => {});
+}
 
+async function clearAllSaved() {
+  if (!window.maxLaunchData) return;
+  if (!confirm('Очистить всю историю сохранённых материалов?')) return;
+  window.sfx?.play('click');
+  await fetch(appBase + '/api/study/saved', {
+    method: 'DELETE',
+    headers: {'X-Max-Data': window.maxLaunchData || ''}
+  }).catch(() => {});
+  loadSavedStudy().catch(() => {});
+}
+
+async function loadSavedStudy() {
+  if (!window.maxLaunchData) return;
+  const response = await fetch(appBase + '/api/study/saved', {headers: {'X-Max-Data': window.maxLaunchData || ''}});
+  if (!response.ok) return;
+  const items = await response.json();
+  const root = byId('saved-study-list');
+  root.replaceChildren();
+  byId('saved-study').hidden = !items.length;
+  if (!items.length) return;
+
+  const header = element('div', 'saved-toolbar');
+  const clearBtn = element('button', 'text-button', 'Очистить всё');
+  clearBtn.type = 'button';
+  clearBtn.addEventListener('click', clearAllSaved);
+  header.append(clearBtn);
+  root.append(header);
+
+  const container = element('div', 'saved-items-container');
+  for (const item of items) {
+    const row = element('div', 'saved-item-row');
+    const button = element('button', 'small-button saved-item-btn', (item.kind === 'quiz' ? 'Тест: ' : 'Конспект: ') + item.title);
+    button.type = 'button';
+    button.addEventListener('click', () => {
+      byId('result-empty').hidden = true;
+      byId('result-content').hidden = false;
+      byId('material-output').hidden = item.kind !== 'material';
+      byId('quiz-output').hidden = item.kind !== 'quiz';
+      if (item.kind === 'material') renderMaterial(item.data); else renderQuiz(item.data);
+      byId('result-status').textContent = 'ГОТОВО';
+      byId('result-content').scrollIntoView({block: 'start', behavior: 'smooth'});
+    });
+    const delBtn = element('button', 'small-button saved-del-btn', '×');
+    delBtn.type = 'button';
+    delBtn.title = 'Удалить';
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteSavedItem(item.id);
+    });
+    row.append(button, delBtn);
+    container.append(row);
+  }
+  root.append(container);
+}
+loadSavedStudy().catch(() => {});

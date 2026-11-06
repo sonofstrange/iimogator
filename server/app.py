@@ -54,6 +54,8 @@ class TemporaryStore:
         self.ttl = ttl
 
     def put(self, value):
+        if current_max.get():
+            return save_max_item(value)
         self.prune()
         while len(self.items) >= self.limit:
             self.items.popitem(last=False)
@@ -68,10 +70,40 @@ class TemporaryStore:
                 self.items.pop(key)
 
     def get(self, key):
+        if current_max.get():
+            return get_max_item(key)
         self.prune()
         if key not in self.items:
             raise HTTPException(410, 'Файл устарел')
         return self.items[key][1]
+
+
+def max_db():
+    path = Path(os.getenv('CALENDAR_DB', str(ROOT / 'data/calendar.sqlite3')))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(path, timeout=10)
+    db.execute('CREATE TABLE IF NOT EXISTS max_study (id TEXT PRIMARY KEY, owner TEXT NOT NULL, kind TEXT NOT NULL, data TEXT NOT NULL, created REAL NOT NULL)')
+    return db
+
+
+def save_max_item(value):
+    key = uuid.uuid4().hex
+    if isinstance(value, Source):
+        kind, data = 'source', asdict(value)
+    else:
+        kind, data = 'quiz', {'quiz': value['quiz'].model_dump(), 'source_id': value['source_id']}
+    with max_db() as db:
+        db.execute('INSERT INTO max_study VALUES (?, ?, ?, ?, ?)', (key, current_max.get(), kind, json.dumps(data, ensure_ascii=False), time.time()))
+    return key
+
+
+def get_max_item(key):
+    with max_db() as db:
+        row = db.execute('SELECT kind, data FROM max_study WHERE id=? AND owner=?', (key, current_max.get())).fetchone()
+    if not row:
+        raise HTTPException(410, 'Не найдено')
+    data = json.loads(row[1])
+    return Source(**data) if row[0] == 'source' else {'quiz': Quiz.model_validate(data['quiz']), 'source_id': data['source_id']}
 
 
 @app.middleware('http')
@@ -333,7 +365,11 @@ async def generate_material(request: GenerationRequest):
 
 Формат строго JSON по схеме."""
     result = await ask_model(source, prompt, MATERIAL_SCHEMA, StudyMaterial.model_validate, max_tokens=5000)
-    return result.model_dump()
+    data = result.model_dump()
+    if current_max.get():
+        with max_db() as db:
+            db.execute('INSERT INTO max_study VALUES (?, ?, ?, ?, ?)', (uuid.uuid4().hex, current_max.get(), 'material', json.dumps(data, ensure_ascii=False), time.time()))
+    return data
 
 
 QUIZ_SCHEMA = '''{"title":"Название теста","questions":[{"type":"single | multiple | short | matching","prompt":"Вопрос","options":["Вариант"],"correct":[0],"accepted_answers":["Образец правильного ответа"],"pairs":[{"left":"Элемент","right":"Его соответствие"}],"explanation":"Почему ответ правильный"}]}'''
@@ -442,7 +478,49 @@ async def check_quiz(quiz_id: str, request: Submission):
         return result
 
 
+@app.get('/api/study/saved')
+async def saved_study():
+    if not current_max.get():
+        raise HTTPException(401, 'Открой приложение в MAX.')
+    with max_db() as db:
+        rows = db.execute("SELECT id, kind, data FROM max_study WHERE owner=? AND kind IN ('material', 'quiz') ORDER BY created DESC LIMIT 100", (current_max.get(),)).fetchall()
+    items = []
+    for key, kind, raw in rows:
+        data = json.loads(raw)
+        if kind == 'material':
+            items.append({'id': key, 'kind': kind, 'title': data['title'], 'data': data})
+        else:
+            quiz = Quiz.model_validate(data['quiz'])
+            questions = []
+            for i, q in enumerate(quiz.questions):
+                item = {'id': str(i), 'type': q.type, 'prompt': q.prompt}
+                if q.type in ('single', 'multiple'):
+                    item['options'] = q.options
+                elif q.type == 'matching':
+                    right = [pair.right for pair in q.pairs]
+                    random.SystemRandom().shuffle(right)
+                    item.update({'left': [pair.left for pair in q.pairs], 'right': right})
+                questions.append(item)
+            items.append({'id': key, 'kind': kind, 'title': quiz.title, 'data': {'quiz_id': key, 'title': quiz.title, 'questions': questions}})
+    return items
 
+
+@app.delete('/api/study/saved/{item_id}')
+async def delete_saved_study_item(item_id: str):
+    if not current_max.get():
+        raise HTTPException(401, 'Открой приложение в MAX.')
+    with max_db() as db:
+        db.execute('DELETE FROM max_study WHERE owner=? AND id=?', (current_max.get(), item_id))
+    return {'ok': True}
+
+
+@app.delete('/api/study/saved')
+async def clear_all_saved_study():
+    if not current_max.get():
+        raise HTTPException(401, 'Открой приложение в MAX.')
+    with max_db() as db:
+        db.execute("DELETE FROM max_study WHERE owner=? AND kind IN ('material', 'quiz')", (current_max.get(),))
+    return {'ok': True}
 
 
 @app.get('/')
