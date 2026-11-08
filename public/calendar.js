@@ -731,30 +731,6 @@ function renderDraft() {
   const list = $('draft-stages');
   list.replaceChildren(node('h3', '', 'Этапы'));
   if (!draft.stages.length) list.append(node('p', 'field-hint', 'Добавь этапы и важные дедлайны.'));
-  
-  const hasMultiSubjectStages = draft.stages.some(st => st.subjects && st.subjects.length > 1);
-  if (hasMultiSubjectStages) {
-    const splitAllBtn = button('⚡ Разбить этапы по предметам', () => {
-      const expanded = [];
-      for (const st of draft.stages) {
-        if (st.subjects && st.subjects.length > 1) {
-          for (const s of st.subjects) {
-            expanded.push({
-              ...st,
-              title: st.title.includes(s) ? st.title : `${st.title} - ${s}`,
-              subjects: [s]
-            });
-          }
-        } else {
-          expanded.push(st);
-        }
-      }
-      draft.stages = expanded;
-      renderDraft();
-    }, 'small-button');
-    splitAllBtn.style.marginBottom = '8px';
-    list.append(splitAllBtn);
-  }
 
   draft.stages.forEach((stage, index) => {
     const row = node('div', 'draft-stage');
@@ -987,22 +963,6 @@ function renderCatalogList(items) {
     
     const deadlineText = item.registration_deadline ? `Регистрация: до ${item.registration_deadline}` : '';
     const statusLabel = item.status === 'archived' ? 'Регистрация завершена (Архив)' : (deadlineText || 'Идёт регистрация');
-    const hasMultipleSubjects = item.subjects && item.subjects.length > 1;
-    
-    const subjectPickerHtml = hasMultipleSubjects ? `
-      <div class="catalog-item-subjects-selector">
-        <span class="catalog-subjects-hint">Предметы участия (каждый предмет получит своё событие и напоминание):</span>
-        <div class="catalog-subject-checkboxes">
-          ${item.subjects.map(subj => `
-            <label class="catalog-subj-pill">
-              <input type="checkbox" class="catalog-subj-check" value="${subj}" checked>
-              <span>${subj}</span>
-            </label>
-          `).join('')}
-        </div>
-      </div>
-    ` : '';
-
     card.innerHTML = `
       <div class="catalog-item-header">
         <div class="catalog-item-title-wrap">
@@ -1015,7 +975,6 @@ function renderCatalogList(items) {
         <span>Предметы: <b>${(item.subjects || []).join(', ') || 'Все'}</b></span>
         <span>Статус: <b>${statusLabel}</b></span>
       </div>
-      ${subjectPickerHtml}
       ${(item.stages && item.stages.length) ? `
         <div class="catalog-item-stages-preview">
           ${item.stages.map(st => `
@@ -1024,7 +983,6 @@ function renderCatalogList(items) {
               <span class="catalog-stage-date">${st.start ? (st.end && st.end !== st.start ? st.start + ' — ' + st.end : st.start) : 'Даты уточняются'}</span>
             </div>
           `).join('')}
-          ${hasMultipleSubjects ? '<div class="catalog-split-badge">⚡ Этапы с несколькими предметами автоматически разделяются на отдельные события для каждого предмета</div>' : ''}
         </div>
       ` : ''}
       <div class="catalog-item-footer">
@@ -1045,11 +1003,9 @@ function renderCatalogList(items) {
         addBtn.disabled = true;
         addBtn.textContent = 'Добавление…';
         try {
-          const checkedBoxes = Array.from(card.querySelectorAll('.catalog-subj-check:checked'));
-          const selected = checkedBoxes.length ? checkedBoxes.map(cb => cb.value) : (item.subjects || []);
           const res = await request('/catalog/import', 'POST', {
             olympiad_id: item.id,
-            selected_subjects: selected
+            selected_subjects: item.subjects || []
           });
           window.sfx?.play('success');
           addBtn.textContent = '✓ Добавлено';
