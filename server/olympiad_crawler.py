@@ -9,6 +9,8 @@ import json
 import logging
 import re
 import urllib.request
+import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -99,82 +101,160 @@ def update_catalog_statuses(catalog: Dict[str, Any]) -> bool:
 
 def crawl_olimpiada_ru() -> List[Dict[str, Any]]:
     """
-    Scrapes fresh olympiad headlines and schedules from olimpiada.ru across all subject sections.
+    Scrapes fresh olympiad headlines, subjects and schedules from olimpiada.ru across all subject sections.
+    Uses olimpiada.ru megalist API across all 35 subject categories to fetch 200+ competitions with real timelines.
     """
     discovered: List[Dict[str, Any]] = []
     seen_ids = set()
-    
-    crawl_sources = [
-        "https://olimpiada.ru/activities?type=any&period_date=&class=any",
-        "https://olimpiada.ru/activities",
-        "https://olimpiada.ru/article/1176"
-    ]
+    today_str = date.today().isoformat()
 
-    for source_url in crawl_sources:
+    def fetch_subject_html(subj_id: int) -> str:
+        query = urllib.parse.urlencode([("subject[%d]" % subj_id, "on"), ("period", "year"), ("class", "any")])
+        url = f"https://olimpiada.ru/include/activity/megalist.php?{query}"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "X-Requested-With": "XMLHttpRequest"})
         try:
-            req = urllib.request.Request(source_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                data = resp.read()
-            
-            soup = BeautifulSoup(data, "html.parser")
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                return resp.read().decode('utf-8', errors='ignore')
+        except Exception as e:
+            logger.debug(f"Subject {subj_id} crawl error: {e}")
+            return ""
 
-            for a in soup.find_all("a", href=True):
-                href = a["href"]
-                text = a.get_text(strip=True)
-                if not href.startswith("/activity/"):
-                    continue
-                
-                parts = href.strip("/").split("/")
-                if len(parts) < 2 or not parts[1].isdigit():
-                    continue
-                
-                olymp_id = f"olimpiada-ru-{parts[1]}"
-                if olymp_id in seen_ids or len(text) < 5 or "еще" in text.lower():
-                    continue
-                seen_ids.add(olymp_id)
+    try:
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            html_results = list(executor.map(fetch_subject_html, range(1, 36)))
+    except Exception as e:
+        logger.warning(f"Parallel crawl failed: {e}")
+        html_results = []
 
-                # Heuristic subject detection
-                detected_subjects = []
-                low = text.lower()
-                if any(w in low for w in ["математ", "алгебр", "геометр"]): detected_subjects.append("Математика")
-                if any(w in low for w in ["информ", "программ", "ит", "it", "компьют"]): detected_subjects.append("Информатика")
-                if any(w in low for w in ["физик", "астроном"]): detected_subjects.append("Физика")
-                if any(w in low for w in ["хим"]): detected_subjects.append("Химия")
-                if any(w in low for w in ["биолог", "эколог", "медиц"]): detected_subjects.append("Биология")
-                if any(w in low for w in ["лингвист", "язык", "русск", "англ", "литерат"]): detected_subjects.append("Лингвистика")
-                if any(w in low for w in ["робот", "инженер", "хакатон", "техно", "черчен"]): detected_subjects.append("Хакатоны")
-                if any(w in low for w in ["эконом", "финанс"]): detected_subjects.append("Экономика")
-                if any(w in low for w in ["истор", "обществ", "прав"]): detected_subjects.append("История")
+    for html in html_results:
+        if not html:
+            continue
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+            for c in soup.find_all(class_="fav_olimp"):
+                act_id = c.get("act")
+                if not act_id or act_id in seen_ids:
+                    continue
+                h = c.find(class_="headline")
+                if not h:
+                    continue
+                title = h.get_text(strip=True)
+                if len(title) < 4:
+                    continue
+                seen_ids.add(act_id)
 
-                if not detected_subjects:
-                    detected_subjects = ["Комплексная"]
+                desc_el = c.find(class_="olimp_desc")
+                desc = desc_el.get_text(strip=True) if desc_el else "Официальное состязание перечня РСОШ и портала Olimpiada.ru."
+
+                classes_el = c.find(class_="classes_dop")
+                classes = classes_el.get_text(strip=True) if classes_el else "1-11 классы"
+
+                subjects = []
+                for stag in c.find_all(class_="subject_tag"):
+                    stext = stag.get_text(strip=True)
+                    if stext and stext not in subjects:
+                        subjects.append(stext)
+
+                # Normalize / augment subjects so UI filter chips work
+                normalized = list(subjects)
+                low_title_desc = (title + " " + desc + " " + " ".join(subjects)).lower()
+                if any(k in low_title_desc for k in ["информ", "програм", "ит", "it", "компьют"]):
+                    if "Информатика" not in normalized: normalized.append("Информатика")
+                if any(k in low_title_desc for k in ["математ", "алгебр", "геометр"]):
+                    if "Математика" not in normalized: normalized.append("Математика")
+                if any(k in low_title_desc for k in ["физик", "астроном"]):
+                    if "Физика" not in normalized: normalized.append("Физика")
+                if any(k in low_title_desc for k in ["хим"]):
+                    if "Химия" not in normalized: normalized.append("Химия")
+                if any(k in low_title_desc for k in ["биолог", "эколог", "медиц"]):
+                    if "Биология" not in normalized: normalized.append("Биология")
+                if any(k in low_title_desc for k in ["робот", "инженер", "хакатон", "техно", "черчен"]):
+                    if "Хакатоны" not in normalized: normalized.append("Хакатоны")
+                if any(k in low_title_desc for k in ["язык", "русск", "англ", "немец", "франц", "лингв", "литерат"]):
+                    if "Лингвистика" not in normalized: normalized.append("Лингвистика")
+                if any(k in low_title_desc for k in ["эконом", "финанс"]):
+                    if "Экономика" not in normalized: normalized.append("Экономика")
+                if any(k in low_title_desc for k in ["истор", "обществ", "прав"]):
+                    if "История" not in normalized: normalized.append("История")
+
+                if not normalized:
+                    normalized = ["Комплексная"]
+
+                stages = []
+                reg_deadline = None
+
+                for ev in c.find_all(class_="tl_event"):
+                    ev_date_str = ev.get("date")
+                    ev_len = ev.get("length")
+                    cls_list = ev.get("class", [])
+
+                    ev_name_el = ev.find(class_="tl_cont_f")
+                    ev_name = ev_name_el.get_text(strip=True) if ev_name_el else ""
+                    clean_name = re.sub(r'<!--.*?-->', '', ev_name).strip()
+
+                    if "ereg" in cls_list:
+                        stage_title = f"Регистрация: {clean_name}" if clean_name else "Регистрация участников"
+                    elif "eoch" in cls_list:
+                        stage_title = f"Очный / финал: {clean_name}" if clean_name else "Заключительный этап"
+                    else:
+                        stage_title = f"Отборочный этап: {clean_name}" if clean_name else "Отборочный этап"
+
+                    start_date = ev_date_str
+                    end_date = None
+                    if start_date and ev_len and ev_len.isdigit():
+                        days = int(ev_len)
+                        if days > 1:
+                            try:
+                                s_dt = date.fromisoformat(start_date)
+                                end_date = (s_dt + timedelta(days=days)).isoformat()
+                            except Exception:
+                                pass
+                    if "ereg" in cls_list:
+                        reg_deadline = end_date or start_date
+
+                    stages.append({
+                        "title": stage_title,
+                        "description": "Этап состязания с портала Olimpiada.ru",
+                        "start": start_date,
+                        "end": end_date or start_date,
+                        "subjects": normalized,
+                        "links": [{"title": "Карточка этапа", "url": f"https://olimpiada.ru/activity/{act_id}"}]
+                    })
+
+                if not stages:
+                    stages.append({
+                        "title": "Отборочный / основной этап",
+                        "description": "Сроки проведения согласно регламенту состязания.",
+                        "start": today_str,
+                        "end": (date.today() + timedelta(days=30)).isoformat(),
+                        "subjects": normalized,
+                        "links": [{"title": "Официальная страница", "url": f"https://olimpiada.ru/activity/{act_id}"}]
+                    })
+
+                status = "active"
+                if reg_deadline and reg_deadline < today_str:
+                    has_future = any((st.get("end") and st["end"] >= today_str) or (st.get("start") and st["start"] >= today_str) for st in stages)
+                    if not has_future:
+                        status = "archived"
 
                 discovered.append({
-                    "id": olymp_id,
-                    "title": text,
-                    "description": f"Официальное состязание перечня РСОШ и портала Olimpiada.ru. Подробности, правила участия и регламент состязания доступны по ссылке на карточку мероприятия.",
+                    "id": f"olimpiada-ru-{act_id}",
+                    "title": title,
+                    "description": desc,
                     "level": "РСОШ / Всероссийская",
-                    "classes": "1-11 классы",
-                    "subjects": detected_subjects,
-                    "registration_deadline": (date.today() + timedelta(days=28)).isoformat(),
-                    "status": "active",
+                    "classes": classes,
+                    "subjects": normalized,
+                    "registration_deadline": reg_deadline,
+                    "status": status,
                     "links": [
-                        {"title": "Карточка на Olimpiada.ru", "url": f"https://olimpiada.ru{href}"}
+                        {"title": "Карточка на Olimpiada.ru", "url": f"https://olimpiada.ru/activity/{act_id}"}
                     ],
-                    "stages": [
-                        {
-                            "title": "Отборочный / школьный этап",
-                            "description": "Текущий этап проведения.",
-                            "start": date.today().isoformat(),
-                            "end": (date.today() + timedelta(days=25)).isoformat(),
-                            "subjects": detected_subjects,
-                            "links": [{"title": "Подробнее", "url": f"https://olimpiada.ru{href}"}]
-                        }
-                    ]
+                    "stages": stages
                 })
         except Exception as e:
-            logger.warning(f"Error crawling {source_url}: {e}")
+            logger.warning(f"Error parsing megalist card: {e}")
 
+    logger.info(f"Crawled {len(discovered)} olympiads from olimpiada.ru across all subjects.")
     return discovered
 
 

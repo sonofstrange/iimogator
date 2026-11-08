@@ -343,3 +343,43 @@
   color: #c0f3d6 !important;
   cursor: default;
 }
+.catalog-item-subjects-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #0f0b1e;
+  border: 1px solid #3d2f54;
+  padding: 8px 10px;
+}
+.catalog-subjects-hint {
+  font-size: 8px;
+  color: #bfadc7;
+}
+.catalog-subject-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.catalog-subj-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #1d162f;
+  border: 1px solid #4f3b6a;
+  padding: 3px 7px;
+  font-size: 8px;
+  color: #dcd0ea;
+  cursor: pointer;
+  user-select: none;
+}
+.catalog-subj-pill input {
+  margin: 0;
+  cursor: pointer;
+  accent-color: #a475cf;
+}
+.catalog-split-badge {
+  font-size: 7px;
+  color: #f7ca88;
+  line-height: 1.6;
+  margin-top: 2px;
+}

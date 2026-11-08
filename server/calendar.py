@@ -519,6 +519,7 @@ def calendar_router(ask_model):
    - subjects: список официальных школьных предметов олимпиады (например: Информатика, Математика, Физика, Химия, Биология, Русский язык). Обобщай специализации и синонимы: программирование, IT, разработка - это Информатика; алгебра, геометрия - это Математика. Не дублируй синонимы.
    - links: полезные ссылки (официальный сайт, регистрация).
 2. stages: все найденные этапы и дедлайны (регистрация, отборочные туры, финал, публикация результатов, апелляции).
+   - ВАЖНО: если у этапа несколько предметов (например ВсОШ, Ломоносов, Высшая проба), автоматически создавай отдельный этап для каждого предмета ('Муниципальный этап — Информатика', 'Муниципальный этап — Физика'), указывая точный предмет в subjects, чтобы у каждого предмета была своя дата и напоминание в календаре.
    - Для каждого этапа укажи title, description, start и end (даты строго в формате YYYY-MM-DD или null, если дата неизвестна).
    - start_time и end_time (HH:MM:SS или null), timezone (например МСК), location.
    - subjects: список предметов, к которым относится этот этап (пустой список - общий этап).
@@ -632,23 +633,58 @@ def calendar_router(ask_model):
             olymp_id = created_olymp['id']
 
             # Insert Stages
+            # Insert Stages with automatic subject splitting
             for stage in target.get('stages', []):
-                stage_model = Event(
-                    title=stage['title'],
-                    description=stage.get('description', ''),
-                    start=stage.get('start'),
-                    end=stage.get('end'),
-                    start_time=stage.get('start_time'),
-                    end_time=stage.get('end_time'),
-                    timezone=stage.get('timezone', ''),
-                    location=stage.get('location', ''),
-                    subjects=stage.get('subjects', []),
-                    links=stage.get('links', []),
-                    olympiad_id=olymp_id,
-                    status='planned',
-                    remind='1d' if stage.get('start') else ''
-                )
-                insert(connection, user, 'event', stage_model)
+                stage_subjs = stage.get('subjects', [])
+                if req.selected_subjects:
+                    target_subjs = [s for s in stage_subjs if s in req.selected_subjects]
+                    if stage_subjs and not target_subjs:
+                        continue
+                else:
+                    target_subjs = stage_subjs
+
+                # If stage has multiple subjects, automatically split into individual events per subject
+                if len(target_subjs) > 1:
+                    for subj in target_subjs:
+                        stage_title = f"{stage['title']} — {subj}" if subj not in stage['title'] else stage['title']
+                        stage_model = Event(
+                            title=stage_title,
+                            description=stage.get('description', ''),
+                            start=stage.get('start'),
+                            end=stage.get('end'),
+                            start_time=stage.get('start_time'),
+                            end_time=stage.get('end_time'),
+                            timezone=stage.get('timezone', ''),
+                            location=stage.get('location', ''),
+                            subjects=[subj],
+                            links=stage.get('links', []),
+                            olympiad_id=olymp_id,
+                            status='planned',
+                            remind='1d' if stage.get('start') else ''
+                        )
+                        insert(connection, user, 'event', stage_model)
+                else:
+                    # Single subject or general stage
+                    stage_sub = target_subjs if target_subjs else (req.selected_subjects[:1] if len(req.selected_subjects) == 1 else [])
+                    stage_title = stage['title']
+                    if len(stage_sub) == 1 and stage_sub[0] not in stage_title and target.get('subjects') and len(target.get('subjects', [])) > 1:
+                        stage_title = f"{stage_title} — {stage_sub[0]}"
+                    stage_model = Event(
+                        title=stage_title,
+                        description=stage.get('description', ''),
+                        start=stage.get('start'),
+                        end=stage.get('end'),
+                        start_time=stage.get('start_time'),
+                        end_time=stage.get('end_time'),
+                        timezone=stage.get('timezone', ''),
+                        location=stage.get('location', ''),
+                        subjects=stage_sub,
+                        links=stage.get('links', []),
+                        olympiad_id=olymp_id,
+                        status='planned',
+                        remind='1d' if stage.get('start') else ''
+                    )
+                    insert(connection, user, 'event', stage_model)
 
         return {'ok': True, 'olympiad_id': olymp_id, 'title': target['title']}
 
