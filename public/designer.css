@@ -1,20 +1,22 @@
 
-#panel-study .page-heading h1 span {
+#panel-study .page-heading h1 span,
+#panel-calendar .page-heading h1 span {
   display: block;
   width: min(300px, 64vw);
   aspect-ratio: 1030 / 235;
   padding: 0;
-  background: url("assets/heading-study.png") 36.6% 49.3% / 118.83% 129.49% no-repeat;
   box-shadow: none;
-  color: transparent;
+  color: transparent !important;
   overflow: hidden;
 }
+#panel-study .page-heading h1 span {
+  background: url("assets/heading-study.png") 36.6% 49.3% / 118.83% 129.49% no-repeat;
+}
 #panel-calendar .page-heading h1 span {
-  width: min(300px, 64vw);
-  aspect-ratio: 1030 / 235;
   background-size: 103.69% 157.87%;
   background-position: 42.1% 38.2%;
   background-image: url("assets/heading-calendar.png");
+  background-repeat: no-repeat;
 }
 .page-heading .companion { width: 175px; height: 175px; margin: 0; align-self: center; display: flex; align-items: center; justify-content: center; }
 .page-heading .companion img { width: 175px; height: 175px; object-fit: contain; filter: none; align-self: center; }
