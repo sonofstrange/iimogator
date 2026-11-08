@@ -4,6 +4,7 @@
 
 - Чат-бот на платформе MAX: https://max.ru/ideya_fiks_155_bot
 - Веб-версия: https://iimogator.rusanoff.ru/
+- Готовый Docker-образ: `sonofstrange/iimogator:latest` (на Docker Hub: https://hub.docker.com/r/sonofstrange/iimogator)
 
 ## Требования
 
@@ -27,6 +28,16 @@ cp .env.example .env
 
 ## Запуск в Docker
 
+### Быстрый запуск из готового образа на Docker Hub
+
+```bash
+# 1. Скачать готовый образ
+docker pull sonofstrange/iimogator:latest
+
+# 2. Запустить контейнер
+docker run -d --name iimogator -p 8080:8080 --env-file .env sonofstrange/iimogator:latest
+```
+
 ### Сборка и запуск через Docker Compose (рекомендуется)
 
 ```bash
@@ -42,14 +53,14 @@ docker compose down
 
 После запуска сервис доступен по адресу `http://127.0.0.1:8080`.
 
-### Сборка и запуск через Docker CLI
+### Сборка и запуск через Docker CLI из исходников
 
 ```bash
 # Сборка образа
-docker build -t iimogator .
+docker build -t sonofstrange/iimogator:latest .
 
 # Запуск контейнера
-docker run -d --name iimogator -p 8080:8080 --env-file .env iimogator
+docker run -d --name iimogator -p 8080:8080 --env-file .env sonofstrange/iimogator:latest
 
 # Остановка контейнера
 docker stop iimogator && docker rm iimogator
