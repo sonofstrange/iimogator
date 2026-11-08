@@ -53,9 +53,31 @@ function wireTabs(selector, attribute, panelPrefix, onSelect = () => {}) {
   };
 }
 
-const selectMainTab = wireTabs('.nav-tab', 'tab', 'panel-', value => {
+const selectMainTabBase = wireTabs('.nav-tab', 'tab', 'panel-', value => {
+  const helpPanel = document.getElementById('panel-help');
+  if (helpPanel) helpPanel.hidden = true;
   history.replaceState(null, '', '#' + value);
 });
+
+function selectMainTab(value) {
+  const helpPanel = document.getElementById('panel-help');
+  if (value === 'help') {
+    document.querySelectorAll('.nav-tab').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+      b.setAttribute('tabindex', '-1');
+    });
+    document.querySelectorAll('main > section').forEach(p => {
+      if (p.id !== 'panel-help') p.hidden = true;
+    });
+    if (helpPanel) helpPanel.hidden = false;
+    history.replaceState(null, '', '#help');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  if (helpPanel) helpPanel.hidden = true;
+  selectMainTabBase(value);
+}
 
 function resolveInitialTab() {
   const hashRaw = (location.hash || '').replace(/^#/, '');
@@ -111,6 +133,7 @@ window.addEventListener('hashchange', () => {
   }
 });
 document.querySelector('.brand').addEventListener('click', () => selectMainTab('study'));
+document.getElementById('help-back-btn')?.addEventListener('click', () => selectMainTab('study'));
 let source = 'text';
 let mode = 'material';
 wireTabs('.input-tab', 'source', 'source-', value => { source = value; });

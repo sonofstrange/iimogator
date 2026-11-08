@@ -12,10 +12,10 @@
   <link rel="stylesheet" href="ponyatno.css?v=4">
   <link rel="stylesheet" href="calendar.css?v=14">
   <link rel="stylesheet" href="theme.css?v=11" id="light-theme">
-  <link rel="stylesheet" href="designer.css?v=12">
+  <link rel="stylesheet" href="designer.css?v=13">
   <script src="theme.js?v=8"></script>
   <script src="sfx.js?v=4"></script>
-  <script src="app.js?v=9" defer></script>
+  <script src="app.js?v=10" defer></script>
   <script src="ponyatno.js?v=5" defer></script>
   <script src="matching.js?v=3" defer></script>
   <script src="study.js?v=10" defer></script>
@@ -42,7 +42,6 @@
     <nav class="navigation" role="tablist" aria-label="Разделы">
       <button id="tab-study" class="nav-tab active" role="tab" aria-selected="true" aria-controls="panel-study" data-tab="study"><span aria-hidden="true">▤</span> Подготовка</button>
       <button id="tab-calendar" class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-calendar" tabindex="-1" data-tab="calendar"><span aria-hidden="true">▦</span> Расписание</button>
-      <button id="tab-help" class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-help" tabindex="-1" data-tab="help"><span aria-hidden="true">?</span> Помощь</button>
       <span class="navigation-line" aria-hidden="true"></span>
     </nav>
 
@@ -137,10 +136,11 @@
         <p class="calendar-storage-note" hidden>Расписание сохраняется для этого браузера. <button class="text-button" id="export-calendar">Скачать копию</button> · <label class="text-button">Восстановить из файла<input type="file" id="restore-calendar" accept="application/json,.json" hidden></label></p>
       </section>
 
-      <section id="panel-help" role="tabpanel" aria-labelledby="tab-help" hidden>
+      <section id="panel-help" role="region" aria-label="Помощь и инструкции" hidden>
         <div class="page-heading help-heading">
-          <div class="study-heading-main">
-            <h1><span>Помощь и инструкции</span></h1>
+          <div class="help-heading-main">
+            <button type="button" class="help-back-btn" id="help-back-btn">← К приложению</button>
+            <h1 class="help-title"><span>Помощь и инструкции</span></h1>
             <p class="page-description">Понятные карточки-подсказки: как пользоваться подготовкой, расписанием и олимпиадами.</p>
           </div>
           <div class="companion" aria-hidden="true"><img src="assets/robot.png" alt="" width="256" height="256"></div>
