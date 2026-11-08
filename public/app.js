@@ -340,6 +340,247 @@ function initAutoResize() {
 document.addEventListener('DOMContentLoaded', initAutoResize);
 
 
+// --- Fullscreen Zoom & Pan Viewer Engine ---
+let viewerHelpIdx = 1;
+let viewerZoomLevel = 1.0;
+let viewerBaseScale = 1.0;
+let viewerPanX = 0;
+let viewerPanY = 0;
+let viewerIsDragging = false;
+let viewerDragStartX = 0;
+let viewerDragStartY = 0;
+let viewerDragInitialPanX = 0;
+let viewerDragInitialPanY = 0;
+let viewerPinchInitialDist = 0;
+let viewerPinchInitialZoom = 1.0;
+
+function computeViewerFitScale() {
+  const stage = document.getElementById('help-viewer-stage');
+  const img = document.getElementById('help-viewer-img');
+  if (!stage || !img) return 1.0;
+  const natW = img.naturalWidth || 1800;
+  const natH = img.naturalHeight || 1272;
+  const stageW = Math.max(stage.clientWidth - 20, 200);
+  const stageH = Math.max(stage.clientHeight - 20, 200);
+  const scaleW = stageW / natW;
+  const scaleH = stageH / natH;
+  return Math.min(scaleW, scaleH);
+}
+
+function applyViewerTransform(smooth = false) {
+  const img = document.getElementById('help-viewer-img');
+  const resetBtn = document.getElementById('help-zoom-reset');
+  if (!img) return;
+  const totalScale = viewerBaseScale * viewerZoomLevel;
+  img.style.transition = smooth ? 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)' : 'none';
+  img.style.transform = `translate(${viewerPanX}px, ${viewerPanY}px) scale(${totalScale})`;
+  if (resetBtn) {
+    const pct = Math.round(viewerZoomLevel * 100);
+    resetBtn.textContent = pct + '%';
+  }
+}
+
+function setViewerZoom(newZoom, centerX = 0, centerY = 0, smooth = true) {
+  const oldZoom = viewerZoomLevel;
+  viewerZoomLevel = Math.max(0.7, Math.min(3.5, newZoom));
+  // Adjust pan to zoom into center
+  if (oldZoom !== viewerZoomLevel && (centerX !== 0 || centerY !== 0)) {
+    const ratio = viewerZoomLevel / oldZoom;
+    viewerPanX = centerX - (centerX - viewerPanX) * ratio;
+    viewerPanY = centerY - (centerY - viewerPanY) * ratio;
+  }
+  // If zoomed back to fit, center image
+  if (viewerZoomLevel <= 1.02) {
+    viewerZoomLevel = 1.0;
+    viewerPanX = 0;
+    viewerPanY = 0;
+  }
+  applyViewerTransform(smooth);
+}
+
+function openHelpViewer(cardIdx) {
+  viewerHelpIdx = Math.max(1, Math.min(5, cardIdx));
+  const viewer = document.getElementById('help-viewer');
+  const img = document.getElementById('help-viewer-img');
+  const title = document.getElementById('help-viewer-title');
+  if (!viewer || !img) return;
+
+  title.textContent = `Карточка ${viewerHelpIdx} из 5`;
+  img.src = `help/card_${viewerHelpIdx}.jpg`;
+  viewer.hidden = false;
+  document.body.style.overflow = 'hidden';
+
+  function onImgReady() {
+    viewerBaseScale = computeViewerFitScale();
+    viewerZoomLevel = 1.0;
+    viewerPanX = 0;
+    viewerPanY = 0;
+    applyViewerTransform(false);
+  }
+
+  if (img.complete && img.naturalWidth) {
+    onImgReady();
+  } else {
+    img.onload = onImgReady;
+  }
+
+  if (window.WebApp && window.WebApp.BackButton) {
+    window.WebApp.BackButton.show();
+    window.WebApp.BackButton.onClick(closeHelpViewer);
+  }
+}
+
+function closeHelpViewer() {
+  const viewer = document.getElementById('help-viewer');
+  if (viewer) viewer.hidden = true;
+  document.body.style.overflow = '';
+}
+
+// Stage Interactions: Drag & Wheel
+const stage = document.getElementById('help-viewer-stage');
+if (stage) {
+  stage.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    viewerIsDragging = true;
+    viewerDragStartX = e.clientX;
+    viewerDragStartY = e.clientY;
+    viewerDragInitialPanX = viewerPanX;
+    viewerDragInitialPanY = viewerPanY;
+    stage.classList.add('grabbing');
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!viewerIsDragging) return;
+    viewerPanX = viewerDragInitialPanX + (e.clientX - viewerDragStartX);
+    viewerPanY = viewerDragInitialPanY + (e.clientY - viewerDragStartY);
+    applyViewerTransform(false);
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (viewerIsDragging) {
+      viewerIsDragging = false;
+      stage.classList.remove('grabbing');
+    }
+  });
+
+  // Wheel zoom
+  stage.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = stage.getBoundingClientRect();
+    const cursorX = e.clientX - rect.left - rect.width / 2;
+    const cursorY = e.clientY - rect.top - rect.height / 2;
+    const delta = e.deltaY < 0 ? 0.25 : -0.25;
+    setViewerZoom(viewerZoomLevel + delta, cursorX, cursorY, false);
+  }, { passive: false });
+
+  // Double click to zoom in / reset
+  stage.addEventListener('dblclick', e => {
+    e.preventDefault();
+    if (viewerZoomLevel > 1.05) {
+      setViewerZoom(1.0, 0, 0, true);
+    } else {
+      const rect = stage.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left - rect.width / 2;
+      const cursorY = e.clientY - rect.top - rect.height / 2;
+      setViewerZoom(2.0, cursorX, cursorY, true);
+    }
+  });
+
+  // Touch Support (drag and pinch)
+  stage.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      viewerIsDragging = true;
+      viewerDragStartX = e.touches[0].clientX;
+      viewerDragStartY = e.touches[0].clientY;
+      viewerDragInitialPanX = viewerPanX;
+      viewerDragInitialPanY = viewerPanY;
+    } else if (e.touches.length === 2) {
+      viewerIsDragging = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      viewerPinchInitialDist = Math.hypot(dx, dy);
+      viewerPinchInitialZoom = viewerZoomLevel;
+    }
+  }, { passive: false });
+
+  stage.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && viewerIsDragging) {
+      viewerPanX = viewerDragInitialPanX + (e.touches[0].clientX - viewerDragStartX);
+      viewerPanY = viewerDragInitialPanY + (e.touches[0].clientY - viewerDragStartY);
+      applyViewerTransform(false);
+    } else if (e.touches.length === 2 && viewerPinchInitialDist > 0) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / viewerPinchInitialDist;
+      setViewerZoom(viewerPinchInitialZoom * ratio, 0, 0, false);
+    }
+  }, { passive: false });
+
+  stage.addEventListener('touchend', () => {
+    viewerIsDragging = false;
+    viewerPinchInitialDist = 0;
+  });
+}
+
+// Viewer Control Buttons
+document.getElementById('help-zoom-in')?.addEventListener('click', () => {
+  setViewerZoom(viewerZoomLevel + 0.35, 0, 0, true);
+});
+document.getElementById('help-zoom-out')?.addEventListener('click', () => {
+  setViewerZoom(viewerZoomLevel - 0.35, 0, 0, true);
+});
+document.getElementById('help-zoom-reset')?.addEventListener('click', () => {
+  if (viewerZoomLevel === 1.0) {
+    setViewerZoom(1.75, 0, 0, true);
+  } else {
+    setViewerZoom(1.0, 0, 0, true);
+  }
+});
+document.getElementById('help-viewer-close')?.addEventListener('click', closeHelpViewer);
+
+document.getElementById('help-viewer-prev')?.addEventListener('click', () => {
+  openHelpViewer(viewerHelpIdx > 1 ? viewerHelpIdx - 1 : 5);
+});
+document.getElementById('help-viewer-next')?.addEventListener('click', () => {
+  openHelpViewer(viewerHelpIdx < 5 ? viewerHelpIdx + 1 : 1);
+});
+
+// Window resize updates fit scale
+window.addEventListener('resize', () => {
+  const viewer = document.getElementById('help-viewer');
+  if (viewer && !viewer.hidden) {
+    viewerBaseScale = computeViewerFitScale();
+    applyViewerTransform(false);
+  }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  const viewer = document.getElementById('help-viewer');
+  if (!viewer || viewer.hidden) return;
+  if (e.key === 'Escape') closeHelpViewer();
+  else if (e.key === 'ArrowLeft') openHelpViewer(viewerHelpIdx > 1 ? viewerHelpIdx - 1 : 5);
+  else if (e.key === 'ArrowRight') openHelpViewer(viewerHelpIdx < 5 ? viewerHelpIdx + 1 : 1);
+  else if (e.key === '+' || e.key === '=') setViewerZoom(viewerZoomLevel + 0.35, 0, 0, true);
+  else if (e.key === '-') setViewerZoom(viewerZoomLevel - 0.35, 0, 0, true);
+  else if (e.key === '0') setViewerZoom(1.0, 0, 0, true);
+});
+
+// Wire card click triggers
+document.querySelectorAll('.help-card-item').forEach(card => {
+  const idx = parseInt(card.dataset.cardIdx, 10);
+  const imgWrap = card.querySelector('.help-img-wrap');
+  const zoomBtn = card.querySelector('.help-zoom-btn');
+  if (imgWrap) imgWrap.addEventListener('click', () => openHelpViewer(idx));
+  if (zoomBtn) zoomBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    openHelpViewer(idx);
+  });
+});
+
+
 // --- Help Section Quick Navigation ---
 document.querySelectorAll('.help-nav-pill').forEach(pill => {
   pill.addEventListener('click', () => {

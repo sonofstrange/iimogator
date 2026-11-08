@@ -12,10 +12,10 @@
   <link rel="stylesheet" href="ponyatno.css?v=4">
   <link rel="stylesheet" href="calendar.css?v=14">
   <link rel="stylesheet" href="theme.css?v=11" id="light-theme">
-  <link rel="stylesheet" href="designer.css?v=14">
+  <link rel="stylesheet" href="designer.css?v=15">
   <script src="theme.js?v=8"></script>
   <script src="sfx.js?v=4"></script>
-  <script src="app.js?v=11" defer></script>
+  <script src="app.js?v=12" defer></script>
   <script src="ponyatno.js?v=5" defer></script>
   <script src="matching.js?v=3" defer></script>
   <script src="study.js?v=10" defer></script>
@@ -160,6 +160,7 @@
           <article class="window help-card-item" id="help-card-1" data-card-idx="1">
             <div class="window-bar">
               <span>КАРТОЧКА 1 · РЕЖИМ ПОДГОТОВКИ</span>
+              <button type="button" class="help-zoom-btn" data-card-idx="1" title="Открыть с увеличением">🔍 Увеличить</button>
             </div>
             <div class="window-body">
               <div class="help-img-wrap">
@@ -167,6 +168,7 @@
                   <source srcset="help/card_1.webp" type="image/webp">
                   <img src="help/card_1.jpg" alt="Карточка 1: Режим подготовки" class="help-card-img" loading="lazy">
                 </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Режим «Подготовка»</h3>
@@ -184,6 +186,7 @@
           <article class="window help-card-item" id="help-card-2" data-card-idx="2">
             <div class="window-bar">
               <span>КАРТОЧКА 2 · РАСПИСАНИЕ И СОБЫТИЯ ДНЯ</span>
+              <button type="button" class="help-zoom-btn" data-card-idx="2" title="Открыть с увеличением">🔍 Увеличить</button>
             </div>
             <div class="window-body">
               <div class="help-img-wrap">
@@ -191,6 +194,7 @@
                   <source srcset="help/card_2.webp" type="image/webp">
                   <img src="help/card_2.jpg" alt="Карточка 2: Расписание и события дня" class="help-card-img" loading="lazy">
                 </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Расписание и события дня</h3>
@@ -208,6 +212,7 @@
           <article class="window help-card-item" id="help-card-3" data-card-idx="3">
             <div class="window-bar">
               <span>КАРТОЧКА 3 · СПИСКИ И ОЛИМПИАДЫ</span>
+              <button type="button" class="help-zoom-btn" data-card-idx="3" title="Открыть с увеличением">🔍 Увеличить</button>
             </div>
             <div class="window-body">
               <div class="help-img-wrap">
@@ -215,6 +220,7 @@
                   <source srcset="help/card_3.webp" type="image/webp">
                   <img src="help/card_3.jpg" alt="Карточка 3: Списки и олимпиады" class="help-card-img" loading="lazy">
                 </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Списки дел и олимпиад</h3>
@@ -231,6 +237,7 @@
           <article class="window help-card-item" id="help-card-4" data-card-idx="4">
             <div class="window-bar">
               <span>КАРТОЧКА 4 · РЕДАКТИРОВАНИЕ СОБЫТИЙ</span>
+              <button type="button" class="help-zoom-btn" data-card-idx="4" title="Открыть с увеличением">🔍 Увеличить</button>
             </div>
             <div class="window-body">
               <div class="help-img-wrap">
@@ -238,6 +245,7 @@
                   <source srcset="help/card_4.webp" type="image/webp">
                   <img src="help/card_4.jpg" alt="Карточка 4: Редактирование событий" class="help-card-img" loading="lazy">
                 </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Редактирование и персональные настройки</h3>
@@ -255,6 +263,7 @@
           <article class="window help-card-item" id="help-card-5" data-card-idx="5">
             <div class="window-bar">
               <span>КАРТОЧКА 5 · РАЗБОР ОЛИМПИАД ПО ССЫЛКЕ</span>
+              <button type="button" class="help-zoom-btn" data-card-idx="5" title="Открыть с увеличением">🔍 Увеличить</button>
             </div>
             <div class="window-body">
               <div class="help-img-wrap">
@@ -262,6 +271,7 @@
                   <source srcset="help/card_5.webp" type="image/webp">
                   <img src="help/card_5.jpg" alt="Карточка 5: Разбор олимпиад по ссылке" class="help-card-img" loading="lazy">
                 </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Автоматический разбор сайта олимпиады</h3>
@@ -422,6 +432,33 @@
           <div id="saved-study-list"></div>
         </div>
       </dialog>
+
+    
+      <!-- Fullscreen Zoom & Pan Viewer -->
+      <div id="help-viewer" class="help-viewer" hidden aria-modal="true" role="dialog" aria-label="Просмотр карточки с увеличением">
+        <div class="help-viewer-header">
+          <div class="help-viewer-title-wrap">
+            <span id="help-viewer-title" class="help-viewer-title">Карточка 1 из 5</span>
+          </div>
+          <div class="help-viewer-controls">
+            <button type="button" class="help-viewer-btn" id="help-zoom-out" title="Уменьшить">➖</button>
+            <button type="button" class="help-viewer-btn help-zoom-reset" id="help-zoom-reset" title="Сбросить / 100%">100%</button>
+            <button type="button" class="help-viewer-btn" id="help-zoom-in" title="Увеличить">➕</button>
+            <button type="button" class="help-viewer-btn help-viewer-close" id="help-viewer-close" title="Закрыть (Esc)">✕ Закрыть</button>
+          </div>
+        </div>
+
+        <button type="button" class="help-viewer-nav help-viewer-prev" id="help-viewer-prev" aria-label="Предыдущая карточка">‹</button>
+        <button type="button" class="help-viewer-nav help-viewer-next" id="help-viewer-next" aria-label="Следующая карточка">›</button>
+
+        <div class="help-viewer-stage" id="help-viewer-stage">
+          <img id="help-viewer-img" class="help-viewer-img" src="help/card_1.jpg" alt="Карточка помощи" draggable="false">
+        </div>
+
+        <div class="help-viewer-footer">
+          <span class="help-viewer-hint">🖱 Колёсико мыши или клик — масштабирование · Перетаскивание для перемещения</span>
+        </div>
+      </div>
 
     </main>
     <footer><span>ИИмогатор / 2026</span></footer>

@@ -218,3 +218,200 @@
   line-height: 1.6;
   color: #1f3a60;
 }
+
+
+/* Help Card Zoom Buttons & Overlays */
+.help-zoom-btn {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+  font: 8px/1.6 var(--pixel, monospace);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.help-zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+.help-img-wrap {
+  position: relative;
+  cursor: zoom-in;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  box-shadow: 2px 2px 0 #586fa6;
+  background: #000;
+}
+.help-card-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.2s ease;
+}
+.help-img-wrap:hover .help-card-img {
+  transform: scale(1.015);
+}
+.help-img-overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(14, 28, 64, 0.9);
+  color: #ffffff;
+  padding: 5px 12px;
+  font: 8px/1.6 var(--pixel, monospace);
+  font-weight: 600;
+  border-radius: 4px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Fullscreen Zoom & Pan Viewer */
+.help-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: rgba(6, 12, 26, 0.97);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  touch-action: none;
+}
+.help-viewer[hidden] {
+  display: none !important;
+}
+.help-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(13, 22, 46, 0.95);
+  border-bottom: 2px solid var(--edge);
+  z-index: 100;
+  gap: 12px;
+}
+.help-viewer-title {
+  font: 11px/1.4 var(--pixel, monospace);
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+.help-viewer-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.help-viewer-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font: 10px/1.4 var(--pixel, monospace);
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.help-viewer-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: #fff;
+  transform: translateY(-1px);
+}
+.help-viewer-btn:active {
+  transform: translateY(1px);
+}
+.help-zoom-reset {
+  min-width: 58px;
+  text-align: center;
+  background: rgba(30, 80, 180, 0.3);
+  border-color: rgba(90, 150, 255, 0.5);
+}
+.help-viewer-close {
+  background: #c83232;
+  border-color: #ff6b6b;
+}
+.help-viewer-close:hover {
+  background: #e63939;
+}
+.help-viewer-stage {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+.help-viewer-stage.grabbing {
+  cursor: grabbing;
+}
+.help-viewer-img {
+  max-width: none;
+  max-height: none;
+  transform-origin: center center;
+  will-change: transform;
+  pointer-events: auto;
+  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+}
+.help-viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 68px;
+  background: rgba(13, 22, 46, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 36px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+.help-viewer-nav:hover {
+  background: rgba(26, 45, 95, 0.98);
+  border-color: #fff;
+  transform: translateY(-50%) scale(1.05);
+}
+.help-viewer-prev { left: 16px; }
+.help-viewer-next { right: 16px; }
+.help-viewer-footer {
+  padding: 8px 16px;
+  background: rgba(13, 22, 46, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
+  font-size: 11px;
+  color: #a0b2cc;
+}
+
+@media (max-width: 600px) {
+  .help-viewer-header {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .help-viewer-btn {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+  .help-viewer-nav {
+    width: 38px;
+    height: 52px;
+    font-size: 28px;
+  }
+  .help-viewer-prev { left: 8px; }
+  .help-viewer-next { right: 8px; }
+  .help-viewer-footer { display: none; }
+}
