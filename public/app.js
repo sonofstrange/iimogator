@@ -59,27 +59,45 @@ const selectMainTab = wireTabs('.nav-tab', 'tab', 'panel-', value => {
 
 function resolveInitialTab() {
   const hashRaw = (location.hash || '').replace(/^#/, '');
+  const cleanHash = hashRaw.split('?')[0].split('&')[0];
+  if (['help', 'calendar', 'study'].includes(cleanHash)) {
+    return cleanHash;
+  }
+
+  function findParam(params, ...keys) {
+    if (!params) return null;
+    for (const [k, v] of params.entries()) {
+      for (const target of keys) {
+        if (k.toLowerCase() === target.toLowerCase()) return v;
+      }
+    }
+    return null;
+  }
+
   const searchParams = new URLSearchParams(location.search);
   const hashParams = new URLSearchParams(hashRaw);
-  const launchParams = new URLSearchParams(window.maxLaunchData || '');
+  let launchParams = null;
+  try {
+    const raw = window.maxLaunchData || '';
+    launchParams = new URLSearchParams(raw.includes('%') ? decodeURIComponent(raw) : raw);
+  } catch (e) {}
 
-  const startParam = (window.WebApp && (window.WebApp.initDataUnsafe?.start_param || window.WebApp.initDataUnsafe?.payload)) ||
-    launchParams.get('start_param') ||
-    launchParams.get('startapp') ||
-    launchParams.get('payload') ||
-    hashParams.get('start_param') ||
-    hashParams.get('startapp') ||
-    hashParams.get('payload') ||
-    searchParams.get('start_param') ||
-    searchParams.get('startapp') ||
-    searchParams.get('payload') ||
-    '';
+  const candidateKeys = ['webappstartparam', 'start_param', 'startparam', 'startapp', 'payload'];
+  const startParam = (window.WebApp && (
+    window.WebApp.initDataUnsafe?.start_param ||
+    window.WebApp.initDataUnsafe?.WebAppStartParam ||
+    window.WebApp.initDataUnsafe?.startParam ||
+    window.WebApp.initDataUnsafe?.payload
+  )) ||
+  findParam(searchParams, ...candidateKeys) ||
+  findParam(hashParams, ...candidateKeys) ||
+  findParam(launchParams, ...candidateKeys) ||
+  '';
 
-  const cleanHash = hashRaw.split('?')[0].split('&')[0];
-
-  if (startParam === 'help' || startParam === 'instructions' || cleanHash === 'help') return 'help';
-  if (startParam === 'calendar' || cleanHash === 'calendar') return 'calendar';
-  if (startParam === 'study' || cleanHash === 'study') return 'study';
+  const val = String(startParam).toLowerCase().trim();
+  if (val === 'help' || val === 'instructions' || val.includes('help')) return 'help';
+  if (val === 'calendar' || val.includes('calendar')) return 'calendar';
+  if (val === 'study') return 'study';
   return 'study';
 }
 

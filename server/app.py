@@ -607,13 +607,6 @@ async def max_webhook(request: Request):
                                     'web_app': 'ideya_fiks_155_bot',
                                     'payload': 'help'
                                 }
-                            ],
-                            [
-                                {
-                                    'type': 'link',
-                                    'text': '🌐 https://iimogator.rusanoff.ru/#help',
-                                    'url': 'https://iimogator.rusanoff.ru/#help'
-                                }
                             ]
                         ]
                     }
