@@ -417,3 +417,53 @@
   .help-viewer-next { right: 8px; }
   .help-viewer-footer { display: none; }
 }
+
+
+/* Header Actions: Help Button next to Theme Toggle */
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.help-header-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  flex: none;
+  border: 2px solid #547cc2;
+  border-radius: 0;
+  background: #d4eaf5;
+  color: #2055a0;
+  box-shadow: 3px 3px #788dc4;
+  font: 18px/1 var(--pixel, monospace);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .12s ease, border-color .12s ease, color .12s ease, box-shadow .08s ease, transform .06s ease;
+}
+.help-header-btn:hover {
+  background: #e8f6fc;
+  border-color: #2767be;
+  color: #123e7f;
+}
+.help-header-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px #788dc4;
+}
+
+[data-theme="dark"] .help-header-btn {
+  background: #201733;
+  border-color: #765c9a;
+  color: #ddc6ff;
+  box-shadow: 3px 3px #03020e;
+}
+[data-theme="dark"] .help-header-btn:hover {
+  background: #38264c;
+  border-color: #b795e2;
+  color: #fff;
+}
+[data-theme="dark"] .help-header-btn:active {
+  box-shadow: 1px 1px #03020e;
+}

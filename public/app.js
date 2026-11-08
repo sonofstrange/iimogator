@@ -134,6 +134,11 @@ window.addEventListener('hashchange', () => {
 });
 document.querySelector('.brand').addEventListener('click', () => selectMainTab('study'));
 document.getElementById('help-back-btn')?.addEventListener('click', () => selectMainTab('study'));
+document.getElementById('header-help-btn')?.addEventListener('click', () => {
+  window.sfx?.play('tab');
+  maxHaptic('selection');
+  selectMainTab('help');
+});
 let source = 'text';
 let mode = 'material';
 wireTabs('.input-tab', 'source', 'source-', value => { source = value; });
