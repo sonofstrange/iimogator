@@ -99,6 +99,50 @@ def update_catalog_statuses(catalog: Dict[str, Any]) -> bool:
     return changed
 
 
+def detect_olympiad_level(title: str, desc: str = "") -> str:
+    t = (title + " " + desc).lower()
+    
+    # Commercial / educational platforms (never RSOH)
+    if any(k in t for k in ["учи.ру", "uchi.ru", "фоксфорд", "foxford", "знаника", "инфоурок", "якласс"]):
+        return "Онлайн-платформа"
+    if any(k in t for k in ["кенгуру", "русский медвежонок", "кит - компьютеры", "золотое руно", "бритиш бульдог"]):
+        return "Школьный конкурс"
+        
+    # Vseros (highest state level)
+    if any(k in t for k in ["всероссийская олимпиада школьников", "всош", "школьный этап всош", "муниципальный этап всош", "региональный этап всош"]):
+        return "ВсОШ"
+        
+    # RSOH Level 1
+    if any(k in t for k in [
+        "высшая проба", "ломоносов", "покори воробь", "московская олимпиада школьников", "мош",
+        "открытая олимпиада школьников по программированию", "спбгу", "физтех", "турнир городов"
+    ]):
+        return "РСОШ I уровень"
+
+    # RSOH Level 2
+    if any(k in t for k in [
+        "росатом", "курчатов", "шаг в будущее", "технокубок", "всесибирск", "всесиб",
+        "иннополис", "innopolis open", "надежда энергетики", "бельчонок", "юные таланты", "будущие исследователи"
+    ]):
+        return "РСОШ II уровень"
+
+    # RSOH Level 3
+    if any(k in t for k in [
+        "изумруд", "гранит науки", "океан знаний", "мисис", "строгановск", "формула единства", "третье тысячелетие", "самара", "толстовск"
+    ]):
+        return "РСОШ III уровень"
+
+    # IT / Hackathons
+    if any(k in t for k in ["нто", "национальная технологическая", "хакатон", "rucode", "vk cup", "чемпионат по программированию", "ctf"]):
+        return "Хакатон / IT"
+
+    # Check if RSOH mentioned
+    if "рсош" in t or "перечнев" in t:
+        return "РСОШ"
+
+    return "Олимпиада"
+
+
 def crawl_olimpiada_ru() -> List[Dict[str, Any]]:
     """
     Scrapes fresh olympiad headlines, subjects and schedules from olimpiada.ru across all subject sections.
@@ -188,16 +232,22 @@ def crawl_olimpiada_ru() -> List[Dict[str, Any]]:
                     ev_len = ev.get("length")
                     cls_list = ev.get("class", [])
 
-                    ev_name_el = ev.find(class_="tl_cont_f")
-                    ev_name = ev_name_el.get_text(strip=True) if ev_name_el else ""
-                    clean_name = re.sub(r'<!--.*?-->', '', ev_name).strip()
-
-                    if "ereg" in cls_list:
-                        stage_title = f"Регистрация: {clean_name}" if clean_name else "Регистрация участников"
-                    elif "eoch" in cls_list:
-                        stage_title = f"Очный / финал: {clean_name}" if clean_name else "Заключительный этап"
+                    font_el = ev.find("font")
+                    if font_el and font_el.get_text(strip=True):
+                        clean_name = font_el.get_text(strip=True)
                     else:
-                        stage_title = f"Отборочный этап: {clean_name}" if clean_name else "Отборочный этап"
+                        f_el = ev.find(class_="tl_cont_f")
+                        raw = f_el.get_text(strip=True) if f_el else ""
+                        clean_name = re.sub(r'<!--.*?-->', '', raw).strip()
+                        clean_name = re.sub(r'^\s*[\d.]+\s*[а-яА-ЯёЁ]+\s*(?:\.\.\.|\.\.|\-|\—)\s*[\d.]*\s*[а-яА-ЯёЁ]*\s*', '', clean_name).strip()
+
+                    cls_list = ev.get("class", [])
+                    if not clean_name:
+                        if "ereg" in cls_list: clean_name = "Регистрация участников"
+                        elif "eoch" in cls_list: clean_name = "Заключительный очный этап"
+                        else: clean_name = "Отборочный этап"
+
+                    stage_title = clean_name
 
                     start_date = ev_date_str
                     end_date = None
@@ -241,7 +291,7 @@ def crawl_olimpiada_ru() -> List[Dict[str, Any]]:
                     "id": f"olimpiada-ru-{act_id}",
                     "title": title,
                     "description": desc,
-                    "level": "РСОШ / Всероссийская",
+                    "level": detect_olympiad_level(title, desc),
                     "classes": classes,
                     "subjects": normalized,
                     "registration_deadline": reg_deadline,

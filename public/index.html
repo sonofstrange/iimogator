@@ -10,8 +10,8 @@
   <link rel="stylesheet" href="styles.css?v=8">
   <link rel="stylesheet" href="study.css?v=13">
   <link rel="stylesheet" href="ponyatno.css?v=4">
-  <link rel="stylesheet" href="calendar.css?v=13">
-  <link rel="stylesheet" href="theme.css?v=10" id="light-theme">
+  <link rel="stylesheet" href="calendar.css?v=14">
+  <link rel="stylesheet" href="theme.css?v=11" id="light-theme">
   <link rel="stylesheet" href="designer.css?v=12">
   <script src="theme.js?v=8"></script>
   <script src="sfx.js?v=4"></script>
@@ -19,7 +19,7 @@
   <script src="ponyatno.js?v=5" defer></script>
   <script src="matching.js?v=3" defer></script>
   <script src="study.js?v=10" defer></script>
-  <script type="module" src="calendar.js?v=14"></script>
+  <script type="module" src="calendar.js?v=15"></script>
 </head>
 <body>
   <svg width="0" height="0" aria-hidden="true" class="logo-filter">
@@ -174,20 +174,54 @@
               <button class="small-button active" id="catalog-tab-active" type="button" data-catalog-status="active">Идёт регистрация</button>
               <button class="small-button" id="catalog-tab-archived" type="button" data-catalog-status="archived">Архив</button>
             </div>
+            <div class="catalog-sort-wrap">
+              <select id="catalog-sort" class="catalog-sort-select" aria-label="Сортировка">
+                <option value="deadline">Сначала срочные дедлайны</option>
+                <option value="level">По уровню (ВсОШ / РСОШ)</option>
+                <option value="name_asc">По названию (А–Я)</option>
+                <option value="name_desc">По названию (Я–А)</option>
+              </select>
+            </div>
             <div class="catalog-search-wrap">
               <input type="search" id="catalog-search" placeholder="Поиск по названию или предмету…" class="catalog-search-input">
             </div>
           </div>
 
-          <div class="catalog-subject-tags" id="catalog-subject-tags">
-            <button class="subject-chip active" type="button" data-subject="">Все предметы</button>
-            <button class="subject-chip" type="button" data-subject="Информатика">Информатика</button>
-            <button class="subject-chip" type="button" data-subject="Математика">Математика</button>
-            <button class="subject-chip" type="button" data-subject="Физика">Физика</button>
-            <button class="subject-chip" type="button" data-subject="Химия">Химия</button>
-            <button class="subject-chip" type="button" data-subject="Биология">Биология</button>
-            <button class="subject-chip" type="button" data-subject="Хакатоны">Хакатоны / ИИ</button>
-            <button class="subject-chip" type="button" data-subject="Лингвистика">Языки</button>
+          <div class="catalog-filter-group">
+            <div class="catalog-filter-row">
+              <span class="catalog-filter-heading">Уровень:</span>
+              <div class="catalog-chip-group" id="catalog-level-tags">
+                <button class="level-chip active" type="button" data-level="">Все уровни</button>
+                <button class="level-chip" type="button" data-level="rsoh">РСОШ (I, II, III)</button>
+                <button class="level-chip" type="button" data-level="vseros">ВсОШ</button>
+                <button class="level-chip" type="button" data-level="it">Хакатоны / IT</button>
+                <button class="level-chip" type="button" data-level="online">Онлайн-платформы</button>
+              </div>
+            </div>
+
+            <div class="catalog-filter-row">
+              <span class="catalog-filter-heading">Класс:</span>
+              <div class="catalog-chip-group" id="catalog-class-tags">
+                <button class="class-chip active" type="button" data-class="">Все классы</button>
+                <button class="class-chip" type="button" data-class="1-4">1–4 кл</button>
+                <button class="class-chip" type="button" data-class="5-9">5–9 кл</button>
+                <button class="class-chip" type="button" data-class="10-11">10–11 кл</button>
+              </div>
+            </div>
+
+            <div class="catalog-filter-row">
+              <span class="catalog-filter-heading">Предмет:</span>
+              <div class="catalog-chip-group" id="catalog-subject-tags">
+                <button class="subject-chip active" type="button" data-subject="">Все предметы</button>
+                <button class="subject-chip" type="button" data-subject="Информатика">Информатика</button>
+                <button class="subject-chip" type="button" data-subject="Математика">Математика</button>
+                <button class="subject-chip" type="button" data-subject="Физика">Физика</button>
+                <button class="subject-chip" type="button" data-subject="Химия">Химия</button>
+                <button class="subject-chip" type="button" data-subject="Биология">Биология</button>
+                <button class="subject-chip" type="button" data-subject="Хакатоны">Хакатоны / ИИ</button>
+                <button class="subject-chip" type="button" data-subject="Лингвистика">Языки</button>
+              </div>
+            </div>
           </div>
 
           <div class="catalog-meta-info" id="catalog-meta-info">

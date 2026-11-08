@@ -904,10 +904,107 @@ try {
 let catalogState = {
   status: 'active',
   subject: '',
+  level: '',
+  classes: '',
+  sort: 'deadline',
   search: '',
   data: null,
   loading: false
 };
+
+function applyCatalogFiltersAndSort() {
+  if (!catalogState.data || !catalogState.data.olympiads) return;
+  let items = [...catalogState.data.olympiads];
+
+  // 1. Status filter
+  if (catalogState.status === 'active') {
+    items = items.filter(it => it.status !== 'archived');
+  } else if (catalogState.status === 'archived') {
+    items = items.filter(it => it.status === 'archived');
+  }
+
+  // 2. Subject filter
+  if (catalogState.subject) {
+    const sLow = catalogState.subject.toLowerCase();
+    items = items.filter(it => (it.subjects || []).some(s => s.toLowerCase().includes(sLow)));
+  }
+
+  // 3. Level filter
+  if (catalogState.level) {
+    if (catalogState.level === 'rsoh') {
+      items = items.filter(it => (it.level || '').startsWith('РСОШ'));
+    } else if (catalogState.level === 'vseros') {
+      items = items.filter(it => (it.level || '') === 'ВсОШ' || it.title.toLowerCase().includes('всерос') || it.title.toLowerCase().includes('всош'));
+    } else if (catalogState.level === 'it') {
+      items = items.filter(it => (it.level || '').includes('IT') || (it.level || '').includes('Хакатон') || (it.subjects || []).includes('Хакатоны'));
+    } else if (catalogState.level === 'online') {
+      items = items.filter(it => (it.level || '').includes('Онлайн') || (it.level || '').includes('Конкурс') || (it.level || '').includes('Платформа') || it.title.toLowerCase().includes('учи.ру') || it.title.toLowerCase().includes('фоксфорд'));
+    }
+  }
+
+  // 4. Classes filter
+  if (catalogState.classes) {
+    if (catalogState.classes === '1-4') {
+      items = items.filter(it => {
+        const c = (it.classes || '').toLowerCase();
+        return c.includes('1') || c.includes('2') || c.includes('3') || c.includes('4') || c.includes('начальн');
+      });
+    } else if (catalogState.classes === '5-9') {
+      items = items.filter(it => {
+        const c = (it.classes || '').toLowerCase();
+        return c.includes('5') || c.includes('6') || c.includes('7') || c.includes('8') || c.includes('9');
+      });
+    } else if (catalogState.classes === '10-11') {
+      items = items.filter(it => {
+        const c = (it.classes || '').toLowerCase();
+        return c.includes('10') || c.includes('11') || c.includes('старш');
+      });
+    }
+  }
+
+  // 5. Search filter
+  if (catalogState.search) {
+    const q = catalogState.search.trim().toLowerCase();
+    items = items.filter(it =>
+      (it.title || '').toLowerCase().includes(q) ||
+      (it.description || '').toLowerCase().includes(q) ||
+      (it.subjects || []).some(s => s.toLowerCase().includes(q))
+    );
+  }
+
+  // 6. Sorting
+  const prestigeScore = it => {
+    const lvl = it.level || '';
+    if (lvl === 'ВсОШ') return 1;
+    if (lvl.includes('I уровень')) return 2;
+    if (lvl.includes('II уровень')) return 3;
+    if (lvl.includes('III уровень')) return 4;
+    if (lvl.startsWith('РСОШ')) return 5;
+    if (lvl.includes('IT') || lvl.includes('Хакатон')) return 6;
+    if (lvl.includes('Онлайн') || lvl.includes('Платформа')) return 8;
+    return 7;
+  };
+
+  if (catalogState.sort === 'deadline') {
+    items.sort((a, b) => {
+      const da = a.registration_deadline || '9999-99-99';
+      const db = b.registration_deadline || '9999-99-99';
+      return da.localeCompare(db) || a.title.localeCompare(b.title, 'ru');
+    });
+  } else if (catalogState.sort === 'level') {
+    items.sort((a, b) => prestigeScore(a) - prestigeScore(b) || a.title.localeCompare(b.title, 'ru'));
+  } else if (catalogState.sort === 'name_asc') {
+    items.sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+  } else if (catalogState.sort === 'name_desc') {
+    items.sort((a, b) => b.title.localeCompare(a.title, 'ru'));
+  }
+
+  const countLabel = $('catalog-count-label');
+  if (countLabel) {
+    countLabel.textContent = `Найдено: ${items.length} олимпиад (всего в базе: ${catalogState.data.all_total || catalogState.data.total})`;
+  }
+  renderCatalogList(items);
+}
 
 async function loadCatalog() {
   const countLabel = $('catalog-count-label');
@@ -918,15 +1015,9 @@ async function loadCatalog() {
   countLabel.textContent = 'Обновление списка…';
   
   try {
-    const params = new URLSearchParams({
-      status: catalogState.status,
-      subject: catalogState.subject,
-      search: catalogState.search
-    });
-    const res = await request('/catalog?' + params.toString());
+    const res = await request('/catalog?status=all');
     catalogState.data = res;
     
-    countLabel.textContent = `Найдено: ${res.total} олимпиад (всего в базе: ${res.all_total})`;
     if (res.updated_at) {
       try {
         const dt = new Date(res.updated_at);
@@ -935,8 +1026,7 @@ async function loadCatalog() {
         updatedLabel.textContent = '';
       }
     }
-    
-    renderCatalogList(res.olympiads || []);
+    applyCatalogFiltersAndSort();
   } catch (err) {
     countLabel.textContent = 'Ошибка загрузки каталога';
     listEl.innerHTML = `<p class="schedule-empty">Не удалось загрузить каталог: ${err.message || err}</p>`;
@@ -1034,23 +1124,37 @@ $('catalog-tab-active')?.addEventListener('click', () => {
   $('catalog-tab-active').classList.add('active');
   $('catalog-tab-archived').classList.remove('active');
   catalogState.status = 'active';
-  loadCatalog();
+  applyCatalogFiltersAndSort();
 });
 
 $('catalog-tab-archived')?.addEventListener('click', () => {
   $('catalog-tab-archived').classList.add('active');
   $('catalog-tab-active').classList.remove('active');
   catalogState.status = 'archived';
-  loadCatalog();
+  applyCatalogFiltersAndSort();
 });
 
-let catalogSearchTimeout = null;
-$('catalog-search')?.addEventListener('input', (e) => {
-  clearTimeout(catalogSearchTimeout);
-  catalogSearchTimeout = setTimeout(() => {
-    catalogState.search = e.target.value;
-    loadCatalog();
-  }, 250);
+$('catalog-sort')?.addEventListener('change', (e) => {
+  catalogState.sort = e.target.value;
+  applyCatalogFiltersAndSort();
+});
+
+$('catalog-level-tags')?.addEventListener('click', (e) => {
+  const chip = e.target.closest('.level-chip');
+  if (!chip) return;
+  $('catalog-level-tags').querySelectorAll('.level-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  catalogState.level = chip.dataset.level || '';
+  applyCatalogFiltersAndSort();
+});
+
+$('catalog-class-tags')?.addEventListener('click', (e) => {
+  const chip = e.target.closest('.class-chip');
+  if (!chip) return;
+  $('catalog-class-tags').querySelectorAll('.class-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  catalogState.classes = chip.dataset.class || '';
+  applyCatalogFiltersAndSort();
 });
 
 $('catalog-subject-tags')?.addEventListener('click', (e) => {
@@ -1059,6 +1163,15 @@ $('catalog-subject-tags')?.addEventListener('click', (e) => {
   $('catalog-subject-tags').querySelectorAll('.subject-chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   catalogState.subject = chip.dataset.subject || '';
-  loadCatalog();
+  applyCatalogFiltersAndSort();
+});
+
+let catalogSearchTimeout = null;
+$('catalog-search')?.addEventListener('input', (e) => {
+  clearTimeout(catalogSearchTimeout);
+  catalogSearchTimeout = setTimeout(() => {
+    catalogState.search = e.target.value;
+    applyCatalogFiltersAndSort();
+  }, 120);
 });
 

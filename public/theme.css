@@ -247,6 +247,29 @@ footer { color: #444379; }
   border-color: #1a4ebd !important;
   color: #fff !important;
 }
+.catalog-sort-select {
+  background: #e2f0f8 !important;
+  border-color: #7fa8cf !important;
+  color: #12325f !important;
+}
+.catalog-filter-heading {
+  color: #35527a !important;
+}
+.level-chip, .class-chip {
+  background: #e2f0f8 !important;
+  border-color: #7fa8cf !important;
+  color: #274c7e !important;
+}
+.level-chip:hover, .class-chip:hover {
+  background: #cce7f5 !important;
+  border-color: #2968c9 !important;
+  color: #12325f !important;
+}
+.level-chip.active, .class-chip.active {
+  background: #2567c9 !important;
+  border-color: #174ea8 !important;
+  color: #fff !important;
+}
 .subject-chip {
   background: #e2f0f8 !important;
   border-color: #7fa8cf !important;
