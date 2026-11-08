@@ -16,10 +16,10 @@
   background-position: 42.1% 38.2%;
   background-image: url("assets/heading-calendar.png");
 }
-.page-heading .companion { width: 125px; height: 125px; margin: 0; align-self: center; }
-.page-heading .companion img { width: 125px; height: 125px; object-fit: contain; filter: none; }
-.schedule-heading { padding-right: 130px; }
-.schedule-heading::after { content: ""; position: absolute; right: 0; top: 20px; width: 115px; height: 115px; background: url("assets/robot.png") center / contain no-repeat; image-rendering: pixelated; pointer-events: none; }
+.page-heading .companion { width: 175px; height: 175px; margin: 0; align-self: center; display: flex; align-items: center; justify-content: center; }
+.page-heading .companion img { width: 175px; height: 175px; object-fit: contain; filter: none; align-self: center; }
+.schedule-heading { padding-right: 190px; position: relative; }
+.schedule-heading::after { content: ""; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 170px; height: 170px; background: url("assets/robot.png") center / contain no-repeat; image-rendering: pixelated; pointer-events: none; }
 .source-window, .settings-window, .calendar-window, .day-window, .result-window {
   border: 2px solid var(--edge);
   border-radius: 0;
@@ -48,7 +48,7 @@
   .page-heading .companion, .page-heading .companion img { width: 165px; height: 165px; }
   .schedule-heading { padding-right: 0; }
   .schedule-heading > div:first-child { padding-right: 165px; }
-  .schedule-heading::after { width: 160px; height: 160px; top: 0; }
+  .schedule-heading::after { width: 160px; height: 160px; top: 50%; transform: translateY(-50%); }
 }
 
 .material-includes { margin: 25px 0 28px; }
