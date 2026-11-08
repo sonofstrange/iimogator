@@ -201,12 +201,34 @@
   height: auto;
   display: block;
 }
-
-
-
-
-
-/* Help Card Zoom Buttons & Overlays */
+.help-card-caption {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+}
+.help-card-caption h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #1659cd;
+}
+.dark-theme .help-card-caption h3 {
+  color: #82c5ff;
+}
+.help-card-caption ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.help-card-caption li {
+  margin-bottom: 6px;
+}
+.help-card-caption li:last-child {
+  margin-bottom: 0;
+}
 .help-zoom-btn {
   background: rgba(255, 255, 255, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.6);
