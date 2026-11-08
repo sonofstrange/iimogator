@@ -42,6 +42,7 @@
     <nav class="navigation" role="tablist" aria-label="Разделы">
       <button id="tab-study" class="nav-tab active" role="tab" aria-selected="true" aria-controls="panel-study" data-tab="study"><span aria-hidden="true">▤</span> Подготовка</button>
       <button id="tab-calendar" class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-calendar" tabindex="-1" data-tab="calendar"><span aria-hidden="true">▦</span> Расписание</button>
+      <button id="tab-help" class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-help" tabindex="-1" data-tab="help"><span aria-hidden="true">?</span> Помощь</button>
       <span class="navigation-line" aria-hidden="true"></span>
     </nav>
 
@@ -135,6 +136,157 @@
         <section id="calendar-olympiads-view" hidden><div class="olympiad-toolbar"><label><input type="checkbox" id="show-closed"> Показать закрытые</label><button class="small-button" id="new-olympiad">+ Олимпиада вручную</button></div><div id="olympiad-list"></div></section>
         <p class="calendar-storage-note" hidden>Расписание сохраняется для этого браузера. <button class="text-button" id="export-calendar">Скачать копию</button> · <label class="text-button">Восстановить из файла<input type="file" id="restore-calendar" accept="application/json,.json" hidden></label></p>
       </section>
+
+      <section id="panel-help" role="tabpanel" aria-labelledby="tab-help" hidden>
+        <div class="page-heading help-heading">
+          <div class="study-heading-main">
+            <h1><span>Помощь и инструкции</span></h1>
+            <p class="page-description">Понятные карточки-подсказки: как пользоваться подготовкой, расписанием и олимпиадами.</p>
+          </div>
+          <div class="companion" aria-hidden="true"><img src="assets/robot.png" alt="" width="256" height="256"></div>
+        </div>
+
+        <div class="help-quick-nav" aria-label="Быстрая навигация по карточкам">
+          <button type="button" class="help-nav-pill active" data-help-target="all">Все карточки</button>
+          <button type="button" class="help-nav-pill" data-help-target="1">1. Подготовка</button>
+          <button type="button" class="help-nav-pill" data-help-target="2">2. Расписание</button>
+          <button type="button" class="help-nav-pill" data-help-target="3">3. Списки</button>
+          <button type="button" class="help-nav-pill" data-help-target="4">4. Редактор</button>
+          <button type="button" class="help-nav-pill" data-help-target="5">5. Разбор ссылок</button>
+        </div>
+
+        <div class="help-cards-grid">
+          <!-- Карточка 1 -->
+          <article class="window help-card-item" id="help-card-1" data-card-idx="1">
+            <div class="window-bar">
+              <span>КАРТОЧКА 1 · РЕЖИМ ПОДГОТОВКИ</span>
+              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
+            </div>
+            <div class="window-body">
+              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+                <picture>
+                  <source srcset="help/card_1.webp" type="image/webp">
+                  <img src="help/card_1.jpg" alt="Карточка 1: Режим подготовки" class="help-card-img" loading="lazy">
+                </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
+              </div>
+              <div class="help-card-caption">
+                <h3>Режим «Подготовка»</h3>
+                <ul>
+                  <li><b>2 основных режима:</b> «Подготовка» и «Расписание» переключаются в верхней панели.</li>
+                  <li><b>Добавление материалов:</b> вставляйте текст лекции, фото конспектов (до 10 шт.) или ссылку на статью / видео.</li>
+                  <li><b>Формат подготовки:</b> выбирайте «Материал» (конспект, выжимка, тезисы) или «Тест» для самопроверки.</li>
+                  <li><b>Настройки тестов:</b> можно гибко настроить сложность и количество вопросов, а история генераций сохраняется.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <!-- Карточка 2 -->
+          <article class="window help-card-item" id="help-card-2" data-card-idx="2">
+            <div class="window-bar">
+              <span>КАРТОЧКА 2 · РАСПИСАНИЕ И СОБЫТИЯ ДНЯ</span>
+              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
+            </div>
+            <div class="window-body">
+              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+                <picture>
+                  <source srcset="help/card_2.webp" type="image/webp">
+                  <img src="help/card_2.jpg" alt="Карточка 2: Расписание и события дня" class="help-card-img" loading="lazy">
+                </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
+              </div>
+              <div class="help-card-caption">
+                <h3>Расписание и события дня</h3>
+                <ul>
+                  <li><b>Любые события:</b> олимпиады из каталога, автоматический разбор по ссылке или ручное добавление кнопкой «+ Событие».</li>
+                  <li><b>Карточка дня:</b> выберите любой день в сетке месяца, чтобы увидеть назначенные занятия и туры.</li>
+                  <li><b>Полезные ссылки:</b> блок «Об олимпиаде и полезные ссылки» открывает доступ к Положению, Регламенту, Чату и Личному кабинету.</li>
+                  <li><b>Статусы:</b> меняйте статус события на «В планах», «Выполнено» или «Пропущено».</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <!-- Карточка 3 -->
+          <article class="window help-card-item" id="help-card-3" data-card-idx="3">
+            <div class="window-bar">
+              <span>КАРТОЧКА 3 · СПИСКИ И ОЛИМПИАДЫ</span>
+              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
+            </div>
+            <div class="window-body">
+              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+                <picture>
+                  <source srcset="help/card_3.webp" type="image/webp">
+                  <img src="help/card_3.jpg" alt="Карточка 3: Списки и олимпиады" class="help-card-img" loading="lazy">
+                </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
+              </div>
+              <div class="help-card-caption">
+                <h3>Списки дел и олимпиад</h3>
+                <ul>
+                  <li><b>Вкладка «Список»:</b> единая лента всех ваших событий и этапов, отсортированная по датам на 60 дней вперёд.</li>
+                  <li><b>Вкладка «Олимпиады»:</b> структурированные карточки олимпиад со шкалой прогресса и этапами.</li>
+                  <li><b>Наглядная индикация:</b> выполненные события аккуратно зачёркиваются, а пропущенные становятся полупрозрачными.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <!-- Карточка 4 -->
+          <article class="window help-card-item" id="help-card-4" data-card-idx="4">
+            <div class="window-bar">
+              <span>КАРТОЧКА 4 · РЕДАКТИРОВАНИЕ СОБЫТИЙ</span>
+              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
+            </div>
+            <div class="window-body">
+              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+                <picture>
+                  <source srcset="help/card_4.webp" type="image/webp">
+                  <img src="help/card_4.jpg" alt="Карточка 4: Редактирование событий" class="help-card-img" loading="lazy">
+                </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
+              </div>
+              <div class="help-card-caption">
+                <h3>Редактирование и персональные настройки</h3>
+                <ul>
+                  <li><b>Кнопка «Изменить»:</b> позволяет переименовать событие, скорректировать даты, время или площадку проведения.</li>
+                  <li><b>Предметы этапа:</b> отмечайте конкретные предметы, в которых участвуете.</li>
+                  <li><b>Личные заметки и цвет:</b> пишите комментарии («НЕ ЗАБЫТЬ ПАСПОРТ!») и выбирайте цвет маркера.</li>
+                  <li><b>Напоминания:</b> настраивайте уведомления в бот (за 15 мин, 1 час, 1 день).</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <!-- Карточка 5 -->
+          <article class="window help-card-item" id="help-card-5" data-card-idx="5">
+            <div class="window-bar">
+              <span>КАРТОЧКА 5 · РАЗБОР ОЛИМПИАД ПО ССЫЛКЕ</span>
+              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
+            </div>
+            <div class="window-body">
+              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+                <picture>
+                  <source srcset="help/card_5.webp" type="image/webp">
+                  <img src="help/card_5.jpg" alt="Карточка 5: Разбор олимпиад по ссылке" class="help-card-img" loading="lazy">
+                </picture>
+                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
+              </div>
+              <div class="help-card-caption">
+                <h3>Автоматический разбор сайта олимпиады</h3>
+                <ul>
+                  <li><b>Вставка ссылки:</b> укажите официальный сайт олимпиады или ссылку на PDF в окне «Олимпиада по ссылке».</li>
+                  <li><b>Умный разбор:</b> бот за пару минут проанализирует страницу, выделит все этапы, дедлайны и льготы при поступлении.</li>
+                  <li><b>Прямые ссылки:</b> бот сам найдет ссылки на положение, регламент, чаты и форму регистрации.</li>
+                  <li><b>Всё в календарь:</b> все найденные туры моментально добавляются в ваше расписание.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <dialog id="event-dialog" class="calendar-dialog" aria-labelledby="event-editor-title">
         <form id="event-form" class="calendar-form">
           <div class="dialog-heading"><h2 id="event-editor-title">Новое событие</h2><button class="small-button" type="button" data-close="event-dialog" aria-label="Закрыть редактор">×</button></div>
@@ -280,6 +432,24 @@
           <div id="saved-study-list"></div>
         </div>
       </dialog>
+    
+      <dialog id="help-lightbox-dialog" class="calendar-dialog help-lightbox-dialog" aria-labelledby="help-lightbox-title">
+        <div class="calendar-form help-lightbox-form">
+          <div class="dialog-heading">
+            <h2 id="help-lightbox-title">Карточка 1 из 5</h2>
+            <button class="small-button" type="button" data-close="help-lightbox-dialog" aria-label="Закрыть">×</button>
+          </div>
+          <div class="help-lightbox-container">
+            <img id="help-lightbox-img" src="help/card_1.jpg" alt="Карточка помощи" loading="lazy">
+          </div>
+          <div class="help-lightbox-toolbar">
+            <button class="small-button" id="help-lightbox-prev" type="button">← Предыдущая</button>
+            <span id="help-lightbox-counter" class="help-lightbox-counter">1 / 5</span>
+            <button class="small-button" id="help-lightbox-next" type="button">Следующая →</button>
+          </div>
+        </div>
+      </dialog>
+
     </main>
     <footer><span>ИИмогатор / 2026</span></footer>
   </div>
