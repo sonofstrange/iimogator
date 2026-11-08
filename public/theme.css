@@ -197,3 +197,8 @@ footer { color: #444379; }
 .saved-item-row {
   background: transparent !important;
 }
+
+.result-empty img {
+  opacity: 1 !important;
+  filter: drop-shadow(0 2px 8px rgba(37, 79, 136, 0.25));
+}
