@@ -741,7 +741,7 @@ function renderDraft() {
           for (const s of st.subjects) {
             expanded.push({
               ...st,
-              title: st.title.includes(s) ? st.title : `${st.title} — ${s}`,
+              title: st.title.includes(s) ? st.title : `${st.title} - ${s}`,
               subjects: [s]
             });
           }

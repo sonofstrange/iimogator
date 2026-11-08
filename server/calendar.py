@@ -633,7 +633,6 @@ def calendar_router(ask_model):
             olymp_id = created_olymp['id']
 
             # Insert Stages
-            # Insert Stages with automatic subject splitting
             for stage in target.get('stages', []):
                 stage_subjs = stage.get('subjects', [])
                 if req.selected_subjects:
@@ -643,10 +642,9 @@ def calendar_router(ask_model):
                 else:
                     target_subjs = stage_subjs
 
-                # If stage has multiple subjects, automatically split into individual events per subject
                 if len(target_subjs) > 1:
                     for subj in target_subjs:
-                        stage_title = f"{stage['title']} — {subj}" if subj not in stage['title'] else stage['title']
+                        stage_title = f"{stage['title']} - {subj}" if subj not in stage['title'] else stage['title']
                         stage_model = Event(
                             title=stage_title,
                             description=stage.get('description', ''),
@@ -664,11 +662,10 @@ def calendar_router(ask_model):
                         )
                         insert(connection, user, 'event', stage_model)
                 else:
-                    # Single subject or general stage
                     stage_sub = target_subjs if target_subjs else (req.selected_subjects[:1] if len(req.selected_subjects) == 1 else [])
                     stage_title = stage['title']
                     if len(stage_sub) == 1 and stage_sub[0] not in stage_title and target.get('subjects') and len(target.get('subjects', [])) > 1:
-                        stage_title = f"{stage_title} — {stage_sub[0]}"
+                        stage_title = f"{stage_title} - {stage_sub[0]}"
                     stage_model = Event(
                         title=stage_title,
                         description=stage.get('description', ''),
