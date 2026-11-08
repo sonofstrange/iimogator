@@ -131,7 +131,7 @@ function links(container, values) {
 function matches(event) {
   const search = $('schedule-search').value.trim().toLocaleLowerCase('ru');
   const group = schedule.olympiads.find(item => item.id === event.olympiad_id);
-  return !search || [event.title, event.description, event.location, group?.title, ...(event.subjects || [])].join(' ').toLocaleLowerCase('ru').includes(search);
+  return !search || [event.title, event.description, event.comment, event.location, group?.title, ...(event.subjects || [])].join(' ').toLocaleLowerCase('ru').includes(search);
 }
 
 function relevant(event, group = schedule.olympiads.find(item => item.id === event.olympiad_id)) {
@@ -215,6 +215,7 @@ function card(occurrence, showDate = false) {
     <button type="button" class="event-title">${event.title}</button>
     <p class="event-meta">${when + (event.repeat ? ' · Повторяется' : '')}</p>
     ${event.location ? `<p class="event-meta">${event.location}</p>` : ''}
+    ${event.comment ? `<div class="event-comment"><span class="event-comment-badge">Заметка:</span> <span class="event-comment-text">${event.comment}</span></div>` : ''}
     ${event.description ? `<p class="event-description">${event.description}</p>` : ''}
     <div class="event-links"></div>
     ${group && (group.description || group.links?.length) ? `
@@ -377,10 +378,11 @@ function olympiadStage(stage, index, group) {
         <button type="button" class="text-button stage-edit-btn">Изменить</button>
       </div>
     </div>
-    ${(stage.description || stage.location || stage.links?.length) ? `
+    ${(stage.description || stage.comment || stage.location || stage.links?.length) ? `
       <details class="olympiad-stage-details"${expandedStageDetails.has(stage.id) ? ' open' : ''}>
         <summary>Подробнее</summary>
         ${stage.location ? `<p class="olympiad-stage-location">${stage.location}</p>` : ''}
+        ${stage.comment ? `<div class="event-comment"><span class="event-comment-badge">Заметка:</span> <span class="event-comment-text">${stage.comment}</span></div>` : ''}
         ${stage.description ? `<p class="event-description">${stage.description}</p>` : ''}
         <div class="stage-links"></div>
       </details>
@@ -587,7 +589,7 @@ function fillEvent(event) {
   const scope = $('event-scope').value;
   eventForm.reset();
   $('event-scope').value = scope;
-  for (const name of ['title', 'description', 'start', 'end', 'start_time', 'end_time', 'timezone', 'location', 'color', 'status', 'remind']) {
+  for (const name of ['title', 'description', 'comment', 'start', 'end', 'start_time', 'end_time', 'timezone', 'location', 'color', 'status', 'remind']) {
     if (event[name] != null) eventForm.elements[name].value = event[name];
   }
   eventForm.elements.links.value = linksValue(event.links);
@@ -647,7 +649,7 @@ function readEvent() {
   const frequency = !fields.frequency.disabled && fields.frequency.value;
   const original = editing.event || {};
   const value = {...original,
-    title: fields.title.value.trim(), description: fields.description.value,
+    title: fields.title.value.trim(), description: fields.description.value, comment: fields.comment ? fields.comment.value.trim() : (original.comment || ''),
     start: undated ? null : fields.start.value || null, end: undated ? null : fields.end.value || null,
     start_time: timed ? fields.start_time.value || null : null, end_time: timed ? fields.end_time.value || null : null,
     timezone: timed ? fields.timezone.value : '', location: fields.location.value, color: fields.color.value,

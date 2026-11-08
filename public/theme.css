@@ -227,3 +227,16 @@ footer { color: #444379; }
   50% { box-shadow: 0 0 0 6px rgba(42, 109, 206, 0); }
   100% { box-shadow: 0 0 0 0 rgba(42, 109, 206, 0); }
 }
+
+/* Event comment banner for light theme */
+.event-comment {
+  background: #fce8f2 !important;
+  border-left-color: #d12e69 !important;
+  color: #5e1130 !important;
+}
+.event-comment-badge {
+  color: #bf1755 !important;
+}
+.event-comment-text {
+  color: #3b081b !important;
+}
