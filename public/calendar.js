@@ -890,7 +890,172 @@ try {
       const previous = await old.json();
       if ((previous.events.length || previous.olympiads.length) && !schedule.events.length && !schedule.olympiads.length && confirm('Перенести расписание из этого браузера в аккаунт MAX?')) {
         await request('/move-browser', 'POST', {});
-        await load();
+        
+// --- Olympiads Catalog Logic ---
+let catalogState = {
+  status: 'active',
+  subject: '',
+  search: '',
+  data: null,
+  loading: false
+};
+
+async function loadCatalog() {
+  const countLabel = $('catalog-count-label');
+  const listEl = $('catalog-list');
+  const updatedLabel = $('catalog-updated-label');
+  
+  catalogState.loading = true;
+  countLabel.textContent = 'Обновление списка…';
+  
+  try {
+    const params = new URLSearchParams({
+      status: catalogState.status,
+      subject: catalogState.subject,
+      search: catalogState.search
+    });
+    const res = await request('/catalog?' + params.toString());
+    catalogState.data = res;
+    
+    countLabel.textContent = `Найдено: ${res.total} олимпиад (всего в базе: ${res.all_total})`;
+    if (res.updated_at) {
+      try {
+        const dt = new Date(res.updated_at);
+        updatedLabel.textContent = 'Обновлено: ' + dt.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+      } catch (e) {
+        updatedLabel.textContent = '';
+      }
+    }
+    
+    renderCatalogList(res.olympiads || []);
+  } catch (err) {
+    countLabel.textContent = 'Ошибка загрузки каталога';
+    listEl.innerHTML = `<p class="schedule-empty">Не удалось загрузить каталог: ${err.message || err}</p>`;
+  } finally {
+    catalogState.loading = false;
+  }
+}
+
+function renderCatalogList(items) {
+  const listEl = $('catalog-list');
+  listEl.replaceChildren();
+
+  if (!items.length) {
+    listEl.innerHTML = '<p class="schedule-empty">По выбранным фильтрам ничего не найдено.</p>';
+    return;
+  }
+
+  // Set of titles already in user schedule
+  const existingTitles = new Set(schedule.olympiads.map(o => o.title.trim().toLowerCase()));
+
+  for (const item of items) {
+    const card = node('article', 'catalog-item-card' + (item.status === 'archived' ? ' is-archived' : ''));
+    const isAdded = existingTitles.has(item.title.trim().toLowerCase());
+    
+    const deadlineText = item.registration_deadline ? `Регистрация: до ${item.registration_deadline}` : '';
+    const statusLabel = item.status === 'archived' ? 'Регистрация завершена (Архив)' : (deadlineText || 'Идёт регистрация');
+    
+    card.innerHTML = `
+      <div class="catalog-item-header">
+        <div class="catalog-item-title-wrap">
+          <span class="catalog-item-badge">${item.level || 'Олимпиада'} · ${item.classes || 'Школьники'}</span>
+          <h3 class="catalog-item-title">${item.title}</h3>
+        </div>
+      </div>
+      <p class="catalog-item-desc">${item.description}</p>
+      <div class="catalog-item-meta">
+        <span>Предметы: <b>${(item.subjects || []).join(', ') || 'Все'}</b></span>
+        <span>Статус: <b>${statusLabel}</b></span>
+      </div>
+      ${(item.stages && item.stages.length) ? `
+        <div class="catalog-item-stages-preview">
+          ${item.stages.map(st => `
+            <div class="catalog-stage-row">
+              <span>• ${st.title}</span>
+              <span class="catalog-stage-date">${st.start ? (st.end && st.end !== st.start ? st.start + ' — ' + st.end : st.start) : 'Даты уточняются'}</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <div class="catalog-item-footer">
+        <div class="catalog-item-links">
+          ${(item.links || []).map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.title} ↗</a>`).join('')}
+        </div>
+        <div class="catalog-item-actions">
+          <button type="button" class="primary-button catalog-add-btn${isAdded ? ' added' : ''}" data-olymp-id="${item.id}" ${isAdded ? 'disabled' : ''}>
+            ${isAdded ? '✓ В календаре' : '+ В календарь'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    const addBtn = card.querySelector('.catalog-add-btn');
+    if (!isAdded) {
+      addBtn.addEventListener('click', async () => {
+        addBtn.disabled = true;
+        addBtn.textContent = 'Добавление…';
+        try {
+          const res = await request('/catalog/import', 'POST', {
+            olympiad_id: item.id,
+            selected_subjects: item.subjects || []
+          });
+          window.sfx?.play('success');
+          addBtn.textContent = '✓ Добавлено';
+          addBtn.classList.add('added');
+          await load();
+        } catch (e) {
+          alert('Ошибка при добавлении: ' + (e.message || e));
+          addBtn.disabled = false;
+          addBtn.textContent = '+ В календарь';
+        }
+      });
+    }
+
+    listEl.append(card);
+  }
+}
+
+// Event Listeners for Catalog
+$('open-catalog-btn')?.addEventListener('click', () => {
+  $('catalog-dialog').showModal();
+  if (window.WebApp && window.WebApp.BackButton) window.WebApp.BackButton.show();
+  loadCatalog();
+});
+
+$('catalog-tab-active')?.addEventListener('click', () => {
+  $('catalog-tab-active').classList.add('active');
+  $('catalog-tab-archived').classList.remove('active');
+  catalogState.status = 'active';
+  loadCatalog();
+});
+
+$('catalog-tab-archived')?.addEventListener('click', () => {
+  $('catalog-tab-archived').classList.add('active');
+  $('catalog-tab-active').classList.remove('active');
+  catalogState.status = 'archived';
+  loadCatalog();
+});
+
+let catalogSearchTimeout = null;
+$('catalog-search')?.addEventListener('input', (e) => {
+  clearTimeout(catalogSearchTimeout);
+  catalogSearchTimeout = setTimeout(() => {
+    catalogState.search = e.target.value;
+    loadCatalog();
+  }, 250);
+});
+
+$('catalog-subject-tags')?.addEventListener('click', (e) => {
+  const chip = e.target.closest('.subject-chip');
+  if (!chip) return;
+  $('catalog-subject-tags').querySelectorAll('.subject-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  catalogState.subject = chip.dataset.subject || '';
+  loadCatalog();
+});
+
+
+  await load();
       }
       localStorage.setItem('max-calendar-migration-asked', '1');
     }

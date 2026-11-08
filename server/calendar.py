@@ -558,4 +558,98 @@ def calendar_router(ask_model):
                 insert(connection, user, 'event', event)
         return {'ok': True}
 
+    
+    @router.get('/catalog')
+    def get_catalog(search: str = '', subject: str = '', status: str = 'active', user: str = Depends(owner)):
+        from .olympiad_crawler import sync_catalog
+        data = sync_catalog(False)
+        items = data.get('olympiads', [])
+        
+        search_low = search.strip().lower()
+        subject_low = subject.strip().lower()
+
+        filtered = []
+        for item in items:
+            # Status filter: active vs archived
+            if status and status != 'all':
+                if item.get('status') != status:
+                    continue
+
+            # Subject filter
+            if subject_low:
+                sub_match = any(subject_low in s.lower() for s in item.get('subjects', []))
+                if not sub_match:
+                    continue
+
+            # Search filter
+            if search_low:
+                text_corpus = f"{item.get('title', '')} {item.get('description', '')} {' '.join(item.get('subjects', []))}".lower()
+                if search_low not in text_corpus:
+                    continue
+
+            filtered.append(item)
+
+        return {
+            'updated_at': data.get('updated_at'),
+            'total': len(filtered),
+            'all_total': len(items),
+            'olympiads': filtered
+        }
+
+    class CatalogImportRequest(BaseModel):
+        olympiad_id: str
+        selected_subjects: list[str] = []
+
+    @router.post('/catalog/import')
+    def import_from_catalog(req: CatalogImportRequest, user: str = Depends(owner)):
+        from .olympiad_crawler import load_catalog
+        data = load_catalog()
+        target = next((item for item in data.get('olympiads', []) if item['id'] == req.olympiad_id), None)
+        if not target:
+            raise HTTPException(404, 'Олимпиада не найдена в каталоге')
+
+        with database() as connection:
+            # Check if this olympiad is already in user's calendar
+            existing_rows = connection.execute('SELECT id, data FROM calendar_items WHERE owner=? AND kind=?', (user, 'olympiad')).fetchall()
+            for r in existing_rows:
+                try:
+                    d = json.loads(r['data'])
+                    if d.get('title') == target.get('title'):
+                        return {'ok': True, 'already_exists': True, 'olympiad_id': r['id']}
+                except Exception:
+                    pass
+
+            # Insert Olympiad
+            olymp_model = Olympiad(
+                title=target['title'],
+                description=target['description'],
+                subjects=target.get('subjects', []),
+                selected_subjects=req.selected_subjects or target.get('subjects', []),
+                links=target.get('links', []),
+                status='active'
+            )
+            created_olymp = insert(connection, user, 'olympiad', olymp_model)
+            olymp_id = created_olymp['id']
+
+            # Insert Stages
+            for stage in target.get('stages', []):
+                stage_model = Event(
+                    title=stage['title'],
+                    description=stage.get('description', ''),
+                    start=stage.get('start'),
+                    end=stage.get('end'),
+                    start_time=stage.get('start_time'),
+                    end_time=stage.get('end_time'),
+                    timezone=stage.get('timezone', ''),
+                    location=stage.get('location', ''),
+                    subjects=stage.get('subjects', []),
+                    links=stage.get('links', []),
+                    olympiad_id=olymp_id,
+                    status='planned',
+                    remind='1d' if stage.get('start') else ''
+                )
+                insert(connection, user, 'event', stage_model)
+
+        return {'ok': True, 'olympiad_id': olymp_id, 'title': target['title']}
+
     return router

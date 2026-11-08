@@ -37,6 +37,8 @@ def startup():
         from .reminders import start_reminders_task
         from .calendar import database
         start_reminders_task(database)
+    from .olympiad_crawler import catalog_background_loop
+    asyncio.create_task(catalog_background_loop())
     asyncio.create_task(ensure_max_webhook())
 
 async def ensure_max_webhook():

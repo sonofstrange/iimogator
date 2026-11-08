@@ -10,8 +10,8 @@
   <link rel="stylesheet" href="styles.css?v=8">
   <link rel="stylesheet" href="study.css?v=13">
   <link rel="stylesheet" href="ponyatno.css?v=4">
-  <link rel="stylesheet" href="calendar.css?v=9">
-  <link rel="stylesheet" href="theme.css?v=9" id="light-theme">
+  <link rel="stylesheet" href="calendar.css?v=10">
+  <link rel="stylesheet" href="theme.css?v=10" id="light-theme">
   <link rel="stylesheet" href="designer.css?v=12">
   <script src="theme.js?v=8"></script>
   <script src="sfx.js?v=4"></script>
@@ -19,7 +19,7 @@
   <script src="ponyatno.js?v=5" defer></script>
   <script src="matching.js?v=3" defer></script>
   <script src="study.js?v=10" defer></script>
-  <script type="module" src="calendar.js?v=9"></script>
+  <script type="module" src="calendar.js?v=10"></script>
 </head>
 <body>
   <svg width="0" height="0" aria-hidden="true" class="logo-filter">
@@ -124,7 +124,7 @@
       </section>
 
       <section id="panel-calendar" role="tabpanel" aria-labelledby="tab-calendar" hidden>
-        <div class="page-heading schedule-heading"><div><h1><span>Расписание</span></h1><p class="page-description">Занятия, планы и олимпиады. <button class="schedule-help-button" id="schedule-help-open" type="button" aria-label="Как пользоваться расписанием" title="Как пользоваться расписанием">?</button></p></div><div class="schedule-actions"><button class="small-button" id="import-olympiad">Олимпиада по ссылке</button><button class="primary-button" id="new-event">+ Событие</button></div></div>
+        <div class="page-heading schedule-heading"><div><h1><span>Расписание</span></h1><p class="page-description">Занятия, планы и олимпиады. <button class="schedule-help-button" id="schedule-help-open" type="button" aria-label="Как пользоваться расписанием" title="Как пользоваться расписанием">?</button></p></div><div class="schedule-actions"><button class="small-button" id="open-catalog-btn" type="button">Каталог олимпиад</button><button class="small-button" id="import-olympiad">Олимпиада по ссылке</button><button class="primary-button" id="new-event">+ Событие</button></div></div>
         <div class="schedule-toolbar"><div class="input-tabs" aria-label="Вид расписания"><button class="input-tab active" data-view="month" aria-pressed="true">Месяц</button><button class="input-tab" data-view="agenda" aria-pressed="false">Список</button><button class="input-tab" data-view="olympiads" aria-pressed="false">Олимпиады</button></div><label class="schedule-search"><span class="sr-only">Поиск событий</span><input id="schedule-search" placeholder="Найти событие…" type="search"></label></div>
         <p id="schedule-error" class="field-error" role="alert" hidden></p>
         <div id="calendar-month-view" class="calendar-layout">
@@ -158,6 +158,49 @@
         </form>
       </dialog>
       <button id="import-status" class="small-button import-status" type="button" hidden></button><dialog id="schedule-help" class="calendar-dialog" aria-labelledby="schedule-help-title"><div class="calendar-form"><div class="dialog-heading"><h2 id="schedule-help-title">Расписание</h2><button class="small-button" type="button" data-close="schedule-help" aria-label="Закрыть">×</button></div><p>Добавляй свои события кнопкой «+ Событие». Для занятий можно настроить повторение.</p><p>Добавь олимпиаду по ссылке, проверь найденные этапы и выбери предметы. Статус этапа можно менять в карточке дня или в списке олимпиад.</p><p>Переключай месяц, список и олимпиады кнопками над календарём. Нажми на дату, чтобы увидеть её события.</p></div></dialog><dialog id="import-dialog" class="calendar-dialog" aria-labelledby="import-title"><div class="calendar-form"><div class="dialog-heading"><h2 id="import-title">Олимпиада по ссылке</h2><button class="small-button" data-close="import-dialog" aria-label="Закрыть импорт">×</button></div><form id="import-form"><label>Сайт олимпиады или PDF<input type="url" name="url" required placeholder="https://…"></label><button class="primary-button" id="parse-olympiad">Разобрать сайт</button></form><div id="import-progress" class="import-progress" hidden><p role="status">Ищем расписание и собираем этапы… Это может занять до 5 минут.</p><div class="progress-track"><span class="progress-active"></span></div><button class="small-button" id="minimize-import" type="button">Свернуть</button> <button class="small-button" id="cancel-import" type="button">Отменить разбор</button></div><p id="import-error" class="field-error" role="alert" hidden></p></div></dialog>
+      
+      <dialog id="catalog-dialog" class="calendar-dialog catalog-dialog" aria-labelledby="catalog-title">
+        <div class="calendar-form catalog-form">
+          <div class="dialog-heading">
+            <div>
+              <h2 id="catalog-title">Каталог олимпиад и конкурсов</h2>
+              <p class="catalog-subtitle" id="catalog-subtitle">Актуальные состязания с автопарсингом и обновлением</p>
+            </div>
+            <button class="small-button" type="button" data-close="catalog-dialog" aria-label="Закрыть каталог">×</button>
+          </div>
+
+          <div class="catalog-toolbar">
+            <div class="catalog-status-tabs" role="tablist">
+              <button class="small-button active" id="catalog-tab-active" type="button" data-catalog-status="active">Идёт регистрация</button>
+              <button class="small-button" id="catalog-tab-archived" type="button" data-catalog-status="archived">Архив</button>
+            </div>
+            <div class="catalog-search-wrap">
+              <input type="search" id="catalog-search" placeholder="Поиск по названию или предмету…" class="catalog-search-input">
+            </div>
+          </div>
+
+          <div class="catalog-subject-tags" id="catalog-subject-tags">
+            <button class="subject-chip active" type="button" data-subject="">Все предметы</button>
+            <button class="subject-chip" type="button" data-subject="Информатика">Информатика</button>
+            <button class="subject-chip" type="button" data-subject="Математика">Математика</button>
+            <button class="subject-chip" type="button" data-subject="Физика">Физика</button>
+            <button class="subject-chip" type="button" data-subject="Химия">Химия</button>
+            <button class="subject-chip" type="button" data-subject="Биология">Биология</button>
+            <button class="subject-chip" type="button" data-subject="Хакатоны">Хакатоны / ИИ</button>
+            <button class="subject-chip" type="button" data-subject="Лингвистика">Языки</button>
+          </div>
+
+          <div class="catalog-meta-info" id="catalog-meta-info">
+            <span id="catalog-count-label">Загрузка олимпиад…</span>
+            <span id="catalog-updated-label" class="catalog-updated-time"></span>
+          </div>
+
+          <div id="catalog-list" class="catalog-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </dialog>
+
       <dialog id="olympiad-dialog" class="calendar-dialog" aria-labelledby="olympiad-title">
         <form id="olympiad-form" class="calendar-form">
           <div class="dialog-heading">

@@ -240,3 +240,70 @@ footer { color: #444379; }
 .event-comment-text {
   color: #3b081b !important;
 }
+
+/* Olympiad Catalog for Light theme */
+.catalog-status-tabs .small-button.active {
+  background: #2365c7 !important;
+  border-color: #1a4ebd !important;
+  color: #fff !important;
+}
+.subject-chip {
+  background: #e2f0f8 !important;
+  border-color: #7fa8cf !important;
+  color: #274c7e !important;
+}
+.subject-chip:hover {
+  background: #cce7f5 !important;
+  border-color: #2968c9 !important;
+  color: #12325f !important;
+}
+.subject-chip.active {
+  background: #2567c9 !important;
+  border-color: #174ea8 !important;
+  color: #fff !important;
+}
+.catalog-meta-info {
+  border-bottom-color: #92b8d8 !important;
+  color: #406089 !important;
+}
+.catalog-item-card {
+  background: #f1f8fc !important;
+  border-color: #9ac0dc !important;
+  border-left-color: #2b6ecd !important;
+}
+.catalog-item-card.is-archived {
+  background: #eaeff4 !important;
+  border-left-color: #7f8e9d !important;
+}
+.catalog-item-badge {
+  background: #d6e8f5 !important;
+  color: #1b4d8d !important;
+  border-color: #6593c6 !important;
+}
+.catalog-item-title {
+  color: #112c5b !important;
+}
+.catalog-item-desc {
+  color: #35527a !important;
+}
+.catalog-item-meta {
+  color: #456792 !important;
+}
+.catalog-item-stages-preview {
+  background: #e5f1f8 !important;
+  border-color: #95bad7 !important;
+}
+.catalog-stage-row {
+  color: #1b4070 !important;
+}
+.catalog-stage-date {
+  color: #a82458 !important;
+}
+.catalog-item-links a {
+  color: #1e5fc3 !important;
+}
+.catalog-add-btn.added {
+  background: #d5eee0 !important;
+  border-color: #4da676 !important;
+  color: #1e623e !important;
+}
