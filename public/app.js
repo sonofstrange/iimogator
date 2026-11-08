@@ -340,52 +340,7 @@ function initAutoResize() {
 document.addEventListener('DOMContentLoaded', initAutoResize);
 
 
-// --- Help Section Logic & Lightbox ---
-let currentHelpIdx = 1;
-
-function openHelpLightbox(idx) {
-  currentHelpIdx = Math.max(1, Math.min(5, idx));
-  const dialog = document.getElementById('help-lightbox-dialog');
-  const img = document.getElementById('help-lightbox-img');
-  const title = document.getElementById('help-lightbox-title');
-  const counter = document.getElementById('help-lightbox-counter');
-  if (!dialog || !img) return;
-
-  img.src = 'help/card_' + currentHelpIdx + '.jpg';
-  if (title) title.textContent = 'Карточка ' + currentHelpIdx + ' из 5';
-  if (counter) counter.textContent = currentHelpIdx + ' / 5';
-  dialog.showModal();
-  if (window.WebApp && window.WebApp.BackButton) window.WebApp.BackButton.show();
-}
-
-document.querySelectorAll('.help-card-item').forEach(card => {
-  const idx = parseInt(card.dataset.cardIdx, 10);
-  const imgWrap = card.querySelector('.help-img-wrap');
-  const zoomBtn = card.querySelector('.help-zoom-btn');
-  if (imgWrap) imgWrap.addEventListener('click', () => openHelpLightbox(idx));
-  if (zoomBtn) zoomBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openHelpLightbox(idx);
-  });
-});
-
-document.getElementById('help-lightbox-prev')?.addEventListener('click', () => {
-  openHelpLightbox(currentHelpIdx > 1 ? currentHelpIdx - 1 : 5);
-});
-document.getElementById('help-lightbox-next')?.addEventListener('click', () => {
-  openHelpLightbox(currentHelpIdx < 5 ? currentHelpIdx + 1 : 1);
-});
-
-document.addEventListener('keydown', (e) => {
-  const dialog = document.getElementById('help-lightbox-dialog');
-  if (!dialog || !dialog.open) return;
-  if (e.key === 'ArrowLeft') {
-    openHelpLightbox(currentHelpIdx > 1 ? currentHelpIdx - 1 : 5);
-  } else if (e.key === 'ArrowRight') {
-    openHelpLightbox(currentHelpIdx < 5 ? currentHelpIdx + 1 : 1);
-  }
-});
-
+// --- Help Section Quick Navigation ---
 document.querySelectorAll('.help-nav-pill').forEach(pill => {
   pill.addEventListener('click', () => {
     document.querySelectorAll('.help-nav-pill').forEach(p => p.classList.remove('active'));

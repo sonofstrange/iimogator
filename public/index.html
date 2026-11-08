@@ -12,10 +12,10 @@
   <link rel="stylesheet" href="ponyatno.css?v=4">
   <link rel="stylesheet" href="calendar.css?v=14">
   <link rel="stylesheet" href="theme.css?v=11" id="light-theme">
-  <link rel="stylesheet" href="designer.css?v=13">
+  <link rel="stylesheet" href="designer.css?v=14">
   <script src="theme.js?v=8"></script>
   <script src="sfx.js?v=4"></script>
-  <script src="app.js?v=10" defer></script>
+  <script src="app.js?v=11" defer></script>
   <script src="ponyatno.js?v=5" defer></script>
   <script src="matching.js?v=3" defer></script>
   <script src="study.js?v=10" defer></script>
@@ -160,15 +160,13 @@
           <article class="window help-card-item" id="help-card-1" data-card-idx="1">
             <div class="window-bar">
               <span>КАРТОЧКА 1 · РЕЖИМ ПОДГОТОВКИ</span>
-              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
             </div>
             <div class="window-body">
-              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+              <div class="help-img-wrap">
                 <picture>
                   <source srcset="help/card_1.webp" type="image/webp">
                   <img src="help/card_1.jpg" alt="Карточка 1: Режим подготовки" class="help-card-img" loading="lazy">
                 </picture>
-                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Режим «Подготовка»</h3>
@@ -186,15 +184,13 @@
           <article class="window help-card-item" id="help-card-2" data-card-idx="2">
             <div class="window-bar">
               <span>КАРТОЧКА 2 · РАСПИСАНИЕ И СОБЫТИЯ ДНЯ</span>
-              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
             </div>
             <div class="window-body">
-              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+              <div class="help-img-wrap">
                 <picture>
                   <source srcset="help/card_2.webp" type="image/webp">
                   <img src="help/card_2.jpg" alt="Карточка 2: Расписание и события дня" class="help-card-img" loading="lazy">
                 </picture>
-                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Расписание и события дня</h3>
@@ -212,15 +208,13 @@
           <article class="window help-card-item" id="help-card-3" data-card-idx="3">
             <div class="window-bar">
               <span>КАРТОЧКА 3 · СПИСКИ И ОЛИМПИАДЫ</span>
-              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
             </div>
             <div class="window-body">
-              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+              <div class="help-img-wrap">
                 <picture>
                   <source srcset="help/card_3.webp" type="image/webp">
                   <img src="help/card_3.jpg" alt="Карточка 3: Списки и олимпиады" class="help-card-img" loading="lazy">
                 </picture>
-                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Списки дел и олимпиад</h3>
@@ -237,15 +231,13 @@
           <article class="window help-card-item" id="help-card-4" data-card-idx="4">
             <div class="window-bar">
               <span>КАРТОЧКА 4 · РЕДАКТИРОВАНИЕ СОБЫТИЙ</span>
-              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
             </div>
             <div class="window-body">
-              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+              <div class="help-img-wrap">
                 <picture>
                   <source srcset="help/card_4.webp" type="image/webp">
                   <img src="help/card_4.jpg" alt="Карточка 4: Редактирование событий" class="help-card-img" loading="lazy">
                 </picture>
-                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Редактирование и персональные настройки</h3>
@@ -263,15 +255,13 @@
           <article class="window help-card-item" id="help-card-5" data-card-idx="5">
             <div class="window-bar">
               <span>КАРТОЧКА 5 · РАЗБОР ОЛИМПИАД ПО ССЫЛКЕ</span>
-              <button type="button" class="help-zoom-btn" title="Открыть в полном размере">🔍 Увеличить</button>
             </div>
             <div class="window-body">
-              <div class="help-img-wrap" title="Нажмите, чтобы открыть на весь экран">
+              <div class="help-img-wrap">
                 <picture>
                   <source srcset="help/card_5.webp" type="image/webp">
                   <img src="help/card_5.jpg" alt="Карточка 5: Разбор олимпиад по ссылке" class="help-card-img" loading="lazy">
                 </picture>
-                <div class="help-img-overlay"><span>🔍 Нажмите для зума</span></div>
               </div>
               <div class="help-card-caption">
                 <h3>Автоматический разбор сайта олимпиады</h3>
@@ -430,23 +420,6 @@
             <button class="small-button" type="button" data-close="saved-study-dialog" aria-label="Закрыть">×</button>
           </div>
           <div id="saved-study-list"></div>
-        </div>
-      </dialog>
-    
-      <dialog id="help-lightbox-dialog" class="calendar-dialog help-lightbox-dialog" aria-labelledby="help-lightbox-title">
-        <div class="calendar-form help-lightbox-form">
-          <div class="dialog-heading">
-            <h2 id="help-lightbox-title">Карточка 1 из 5</h2>
-            <button class="small-button" type="button" data-close="help-lightbox-dialog" aria-label="Закрыть">×</button>
-          </div>
-          <div class="help-lightbox-container">
-            <img id="help-lightbox-img" src="help/card_1.jpg" alt="Карточка помощи" loading="lazy">
-          </div>
-          <div class="help-lightbox-toolbar">
-            <button class="small-button" id="help-lightbox-prev" type="button">← Предыдущая</button>
-            <span id="help-lightbox-counter" class="help-lightbox-counter">1 / 5</span>
-            <button class="small-button" id="help-lightbox-next" type="button">Следующая →</button>
-          </div>
         </div>
       </dialog>
 

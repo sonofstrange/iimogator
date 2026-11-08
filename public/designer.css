@@ -186,21 +186,8 @@
   justify-content: space-between;
   align-items: center;
 }
-.help-zoom-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  color: #ffffff;
-  font: 8px/1.6 var(--pixel, monospace);
-  padding: 3px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-.help-zoom-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
-}
 .help-img-wrap {
   position: relative;
-  cursor: pointer;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--edge);
@@ -211,22 +198,6 @@
   width: 100%;
   height: auto;
   display: block;
-  transition: transform 0.2s ease;
-}
-.help-img-wrap:hover .help-card-img {
-  transform: scale(1.01);
-}
-.help-img-overlay {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(18, 46, 97, 0.85);
-  color: #ffffff;
-  padding: 4px 10px;
-  font: 8px/1.6 var(--pixel, monospace);
-  border-radius: 4px;
-  pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 .help-card-caption {
   margin-top: 14px;
@@ -246,51 +217,4 @@
   font-size: 11px;
   line-height: 1.6;
   color: #1f3a60;
-}
-
-/* Lightbox Dialog */
-.help-lightbox-dialog {
-  max-width: 95vw;
-  width: 1000px;
-  padding: 0;
-  border: 2px solid var(--edge);
-  border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  background: var(--surface);
-}
-.help-lightbox-dialog::backdrop {
-  background: rgba(10, 16, 35, 0.85);
-  backdrop-filter: blur(4px);
-}
-.help-lightbox-form {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.help-lightbox-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #0d1527;
-  border-radius: 6px;
-  overflow: hidden;
-  max-height: 80vh;
-}
-.help-lightbox-container img {
-  max-width: 100%;
-  max-height: 75vh;
-  object-fit: contain;
-  display: block;
-}
-.help-lightbox-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 0 0;
-}
-.help-lightbox-counter {
-  font-weight: 700;
-  font: 10px/1.6 var(--pixel, monospace);
-  color: var(--text);
 }
