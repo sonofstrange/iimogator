@@ -14,10 +14,20 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from bs4 import BeautifulSoup
 
+import os
 logger = logging.getLogger("olympiad_crawler")
 
-CATALOG_FILE = Path(__file__).resolve().parent.parent / "data" / "calendar" / "catalog_olympiads.json"
-CATALOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+def get_catalog_file() -> Path:
+    cal_db = os.getenv("CALENDAR_DB")
+    if cal_db:
+        p = Path(cal_db).parent / "catalog_olympiads.json"
+    else:
+        p = Path(__file__).resolve().parent.parent / "data" / "calendar" / "catalog_olympiads.json"
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    return p
 
 # Pre-seeded top olympiads and contests for 2026/2027 with verified deadlines and stages
 SEED_OLYMPIADS = [
@@ -513,9 +523,10 @@ SEED_OLYMPIADS = [
 
 def load_catalog() -> Dict[str, Any]:
     """Load current olympiad catalog or initialize with seeded data."""
-    if CATALOG_FILE.exists():
+    cat_file = get_catalog_file()
+    if cat_file.exists():
         try:
-            with open(CATALOG_FILE, "r", encoding="utf-8") as f:
+            with open(cat_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 if isinstance(data, dict) and "olympiads" in data:
                     return data
@@ -535,7 +546,7 @@ def load_catalog() -> Dict[str, Any]:
 def save_catalog(data: Dict[str, Any]):
     """Persist catalog to JSON file."""
     try:
-        with open(CATALOG_FILE, "w", encoding="utf-8") as f:
+        with open(get_catalog_file(), "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error(f"Failed to save catalog: {e}")
