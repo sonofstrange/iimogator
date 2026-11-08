@@ -38,7 +38,8 @@
 .olympiad-progress span{display:block;height:100%;background:#a475cf}
 .olympiad-stage{padding:15px 0;border-bottom:1px solid #30263e}
 .olympiad-stage:last-child{border-bottom:0}
-.olympiad-stage-heading{display:flex;align-items:flex-start;gap:14px}
+.olympiad-stage-heading{display:flex;flex-direction:column;gap:12px;width:100%}
+.olympiad-stage-main{display:flex;align-items:flex-start;gap:14px;width:100%}
 .olympiad-stage-number{flex:none;width:29px;padding:6px 0;background:#282035;border-left:3px solid var(--stage-color);text-align:center;color:#d5c5e2;font-size:8px;line-height:1.6}
 .olympiad-stage-info{flex:1;min-width:0}
 .olympiad-stage-info h4{margin:0;font:11px/1.9 var(--pixel);overflow-wrap:anywhere}
@@ -46,7 +47,7 @@
 .olympiad-stage-state{font-size:9px;line-height:1.8;color:#b8a6c7}
 .olympiad-stage.done .olympiad-stage-state{color:#9bd6b2}
 .olympiad-stage.skipped .olympiad-stage-state{color:#d2a0ae}
-.olympiad-stage-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;flex:none;font-size:10px}
+.olympiad-stage-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-start;width:100%;padding-left:43px;font-size:9px}
 .olympiad-stage-actions .small-button{font-size:10px;padding:8px 11px}
 .olympiad-stage-actions .small-button[aria-pressed=true]{border-color:#548a6c;background:#233a31;color:#b7e6c7}
 .olympiad-stage-details{margin:10px 0 0 43px}

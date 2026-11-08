@@ -362,12 +362,14 @@ function olympiadStage(stage, index, group) {
 
   item.innerHTML = `
     <div class="olympiad-stage-heading">
-      <span class="olympiad-stage-number">${String(index + 1).padStart(2, '0')}</span>
-      <div class="olympiad-stage-info">
-        <h4>${status === 'done' ? '<span class="stage-done-check">✓ </span>' : ''}${stage.title}</h4>
-        ${subjects ? `<p class="olympiad-stage-subjects">${subjects}</p>` : ''}
-        <p class="olympiad-stage-date">${dateStr}</p>
-        ${state !== 'Дата не указана' ? `<span class="olympiad-stage-state">${state}</span>` : ''}
+      <div class="olympiad-stage-main">
+        <span class="olympiad-stage-number">${String(index + 1).padStart(2, '0')}</span>
+        <div class="olympiad-stage-info">
+          <h4>${status === 'done' ? '<span class="stage-done-check">✓ </span>' : ''}${stage.title}</h4>
+          ${subjects ? `<p class="olympiad-stage-subjects">${subjects}</p>` : ''}
+          <p class="olympiad-stage-date">${dateStr}</p>
+          ${state !== 'Дата не указана' ? `<span class="olympiad-stage-state">${state}</span>` : ''}
+        </div>
       </div>
       <div class="olympiad-stage-actions">
         <select class="event-status-select" aria-label="Статус этапа: ${stage.title}">
