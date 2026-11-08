@@ -56,9 +56,42 @@ function wireTabs(selector, attribute, panelPrefix, onSelect = () => {}) {
 const selectMainTab = wireTabs('.nav-tab', 'tab', 'panel-', value => {
   history.replaceState(null, '', '#' + value);
 });
-const rawTab = location.hash.slice(1);
-const activeTab = (!rawTab || rawTab.includes('WebAppData') || !['study', 'calendar', 'help'].includes(rawTab)) ? 'study' : rawTab;
+
+function resolveInitialTab() {
+  const hashRaw = (location.hash || '').replace(/^#/, '');
+  const searchParams = new URLSearchParams(location.search);
+  const hashParams = new URLSearchParams(hashRaw);
+  const launchParams = new URLSearchParams(window.maxLaunchData || '');
+
+  const startParam = (window.WebApp && (window.WebApp.initDataUnsafe?.start_param || window.WebApp.initDataUnsafe?.payload)) ||
+    launchParams.get('start_param') ||
+    launchParams.get('startapp') ||
+    launchParams.get('payload') ||
+    hashParams.get('start_param') ||
+    hashParams.get('startapp') ||
+    hashParams.get('payload') ||
+    searchParams.get('start_param') ||
+    searchParams.get('startapp') ||
+    searchParams.get('payload') ||
+    '';
+
+  const cleanHash = hashRaw.split('?')[0].split('&')[0];
+
+  if (startParam === 'help' || startParam === 'instructions' || cleanHash === 'help') return 'help';
+  if (startParam === 'calendar' || cleanHash === 'calendar') return 'calendar';
+  if (startParam === 'study' || cleanHash === 'study') return 'study';
+  return 'study';
+}
+
+const activeTab = resolveInitialTab();
 selectMainTab(activeTab);
+
+window.addEventListener('hashchange', () => {
+  const h = (location.hash || '').replace(/^#/, '').split('?')[0];
+  if (['study', 'calendar', 'help'].includes(h)) {
+    selectMainTab(h);
+  }
+});
 document.querySelector('.brand').addEventListener('click', () => selectMainTab('study'));
 let source = 'text';
 let mode = 'material';
