@@ -76,32 +76,70 @@ input[type=radio],input[type=checkbox]{accent-color:#b981ec;min-width:16px;min-h
 
 
 /* Study header actions */
-.study-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
-.study-actions { margin-top: 8px; flex-shrink: 0; }
-.study-actions .small-button { padding: 10px 14px; font-size: 9px; }
+.study-heading {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 20px !important;
+}
+.study-heading-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.study-actions {
+  margin-top: 14px;
+}
+.study-actions .small-button {
+  padding: 9px 14px;
+  font-size: 9px;
+  display: inline-block;
+}
 #saved-study-dialog { width: min(600px, calc(100% - 24px)); }
 #saved-study-dialog .saved-items-container { max-height: 50vh; }
 @media (max-width: 650px) {
   .study-heading {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px 0;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
   }
-  .study-heading > div:first-child {
-    flex: 1 1 calc(100% - 100px);
-    max-width: calc(100% - 100px);
+  .study-heading-main {
+    flex: 1 1 calc(100% - 105px) !important;
+    max-width: calc(100% - 105px) !important;
   }
   .study-heading .companion {
-    flex: 0 0 auto;
-    margin: 0;
-    align-self: flex-start;
+    flex: 0 0 90px !important;
+    width: 90px !important;
+    height: 90px !important;
+    margin: 0 !important;
+    align-self: center !important;
+  }
+  .study-heading .companion img {
+    width: 90px !important;
+    height: 90px !important;
   }
   .study-actions {
-    flex: 1 1 100%;
+    margin-top: 12px;
     width: 100%;
-    margin-top: 4px;
   }
-  .study-actions .small-button { width: 100%; text-align: center; }
+  .study-actions .small-button {
+    width: 100%;
+    text-align: center;
+  }
+}
+@media (max-width: 400px) {
+  .study-heading-main {
+    flex: 1 1 calc(100% - 80px) !important;
+    max-width: calc(100% - 80px) !important;
+  }
+  .study-heading .companion {
+    flex: 0 0 70px !important;
+    width: 70px !important;
+    height: 70px !important;
+  }
+  .study-heading .companion img {
+    width: 70px !important;
+    height: 70px !important;
+  }
 }
