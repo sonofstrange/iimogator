@@ -210,13 +210,20 @@ function card(occurrence, showDate = false) {
   const subjectsText = event.subjects?.length ? event.subjects.filter(subject => !group || group.selected_subjects == null || group.selected_subjects.includes(subject)).join(' · ') : '';
 
   item.innerHTML = `
-    ${groupText ? `<p class="event-group">${groupText}</p>` : ''}
+    ${group ? `<button type="button" class="event-group event-group-btn" title="Перейти к олимпиаде: ${group.title}">${groupText} <span class="group-arrow">↗</span></button>` : ''}
     ${subjectsText ? `<p class="event-meta">${subjectsText}</p>` : ''}
     <button type="button" class="event-title">${event.title}</button>
     <p class="event-meta">${when + (event.repeat ? ' · Повторяется' : '')}</p>
     ${event.location ? `<p class="event-meta">${event.location}</p>` : ''}
     ${event.description ? `<p class="event-description">${event.description}</p>` : ''}
     <div class="event-links"></div>
+    ${group && (group.description || group.links?.length) ? `
+      <details class="olympiad-about day-olympiad-about">
+        <summary>Об олимпиаде и полезные ссылки</summary>
+        ${group.description ? `<p class="event-description">${group.description}</p>` : ''}
+        <div class="day-olympiad-links"></div>
+      </details>
+    ` : ''}
     <div class="event-actions">
       <select class="event-status-select" aria-label="Статус события: ${event.title}">
         <option value="planned"${status === 'planned' ? ' selected' : ''}>${statusNames.planned}</option>
@@ -225,6 +232,14 @@ function card(occurrence, showDate = false) {
       </select>
     </div>
   `;
+
+  if (group) {
+    const groupBtn = item.querySelector('.event-group-btn');
+    if (groupBtn) groupBtn.addEventListener('click', () => showOlympiad(group.id));
+    const dayAboutLinks = item.querySelector('.day-olympiad-links');
+    if (dayAboutLinks && group.links?.length) links(dayAboutLinks, group.links);
+    else dayAboutLinks?.remove();
+  }
 
   item.querySelector('.event-title').addEventListener('click', () => openEvent(event, day));
   const linkBox = item.querySelector('.event-links');
@@ -422,6 +437,7 @@ function renderOlympiads() {
     const filteredStages = groupMatches ? stages : stages.filter(matches);
     if (!groupMatches && !filteredStages.length) continue;
     const block = node('article', 'window olympiad-card');
+    block.dataset.olympiadId = group.id;
     block.innerHTML = `
       <div class="olympiad-header">
         <div class="olympiad-identity">
@@ -763,6 +779,21 @@ async function startImport(event) {
     else { importResult = imported; $('import-status').textContent = 'Разбор готов - открыть'; $('import-status').hidden = false; }
   } catch (error) { if (error.name !== 'AbortError') { errorAt('import-error', error); if (!$('import-dialog').open) { $('import-status').textContent = 'Ошибка разбора - открыть'; $('import-status').hidden = false; } } else $('import-status').hidden = true; }
   finally { importRequest = null; $('import-progress').hidden = true; $('parse-olympiad').disabled = false; }
+}
+
+function showOlympiad(olympiadId) {
+  expandedOlympiads.add(olympiadId);
+  expandedOlympiadDetails.add(olympiadId);
+  setView('olympiads');
+  setTimeout(() => {
+    const cardEl = document.querySelector(`.olympiad-card[data-olympiad-id="${olympiadId}"]`);
+    if (cardEl) {
+      cardEl.scrollIntoView({behavior: 'smooth', block: 'start'});
+      cardEl.classList.remove('olympiad-card-highlight');
+      void cardEl.offsetWidth;
+      cardEl.classList.add('olympiad-card-highlight');
+    }
+  }, 50);
 }
 
 function setView(value) {

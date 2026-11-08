@@ -83,3 +83,44 @@
 
 .stage-done-check { color: #24845c; font-weight: bold; }
 .olympiad-stage-actions .event-status-select { width: auto; max-width: 150px; }
+
+
+.event-group-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  color: #c79ce8;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+.event-group-btn:hover {
+  color: #f0cbff;
+  text-decoration: underline;
+}
+.event-group-btn .group-arrow {
+  font-size: 10px;
+  opacity: 0.8;
+}
+.day-olympiad-about {
+  margin: 12px 0 6px;
+  padding: 8px 10px;
+  background: #ffffff05;
+  border: 1px dashed #6b5585;
+}
+.day-olympiad-links {
+  margin-top: 8px;
+}
+@keyframes olympiadCardPulse {
+  0% { box-shadow: 0 0 0 0 rgba(199, 156, 232, 0.7); }
+  50% { box-shadow: 0 0 0 6px rgba(199, 156, 232, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(199, 156, 232, 0); }
+}
+.olympiad-card-highlight {
+  animation: olympiadCardPulse 1.2s ease-out 2;
+  border-color: #d5a6ff !important;
+}
