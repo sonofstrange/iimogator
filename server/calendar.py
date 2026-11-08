@@ -111,6 +111,7 @@ def database():
     connection.execute('PRAGMA journal_mode=WAL')
     connection.execute('CREATE TABLE IF NOT EXISTS calendar_items (id TEXT PRIMARY KEY, owner TEXT NOT NULL, kind TEXT NOT NULL, data TEXT NOT NULL)')
     connection.execute('CREATE INDEX IF NOT EXISTS calendar_owner ON calendar_items(owner)')
+    connection.execute('CREATE INDEX IF NOT EXISTS idx_calendar_items_owner_kind ON calendar_items(owner, kind)')
     from .reminders import init_reminders_tables
     init_reminders_tables(connection)
     try:
@@ -562,8 +563,8 @@ def calendar_router(ask_model):
     
     @router.get('/catalog')
     def get_catalog(search: str = '', subject: str = '', status: str = 'active', user: str = Depends(owner)):
-        from .olympiad_crawler import sync_catalog
-        data = sync_catalog(False)
+        from .olympiad_crawler import load_catalog
+        data = load_catalog()
         items = data.get('olympiads', [])
         
         search_low = search.strip().lower()

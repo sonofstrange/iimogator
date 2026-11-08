@@ -36,33 +36,49 @@ from .expanded_seeds import EXPANDED_SEED_OLYMPIADS
 
 SEED_OLYMPIADS = EXPANDED_SEED_OLYMPIADS
 
+_CATALOG_CACHE: Optional[Dict[str, Any]] = None
+_CATALOG_CACHE_MTIME: float = 0.0
+
 def load_catalog() -> Dict[str, Any]:
-    """Load current olympiad catalog or initialize with seeded data."""
+    """Load current olympiad catalog from memory cache or JSON file."""
+    global _CATALOG_CACHE, _CATALOG_CACHE_MTIME
     cat_file = get_catalog_file()
     if cat_file.exists():
         try:
+            mtime = cat_file.stat().st_mtime
+            if _CATALOG_CACHE is not None and mtime == _CATALOG_CACHE_MTIME:
+                return _CATALOG_CACHE
             with open(cat_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 if isinstance(data, dict) and "olympiads" in data:
+                    _CATALOG_CACHE = data
+                    _CATALOG_CACHE_MTIME = mtime
                     return data
         except Exception as e:
             logger.error(f"Failed to read catalog file: {e}")
+
+    if _CATALOG_CACHE is not None:
+        return _CATALOG_CACHE
 
     # Fallback to seed data
     data = {
         "updated_at": datetime.now().isoformat(),
         "total": len(SEED_OLYMPIADS),
-        "olympiads": SEED_OLYMPIADS
+        "olympiads": list(SEED_OLYMPIADS)
     }
     save_catalog(data)
     return data
 
 
 def save_catalog(data: Dict[str, Any]):
-    """Persist catalog to JSON file."""
+    """Persist catalog to JSON file and update in-memory cache."""
+    global _CATALOG_CACHE, _CATALOG_CACHE_MTIME
+    cat_file = get_catalog_file()
     try:
-        with open(get_catalog_file(), "w", encoding="utf-8") as f:
+        with open(cat_file, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+        _CATALOG_CACHE = data
+        _CATALOG_CACHE_MTIME = cat_file.stat().st_mtime
     except Exception as e:
         logger.error(f"Failed to save catalog: {e}")
 
@@ -70,8 +86,8 @@ def save_catalog(data: Dict[str, Any]):
 def update_catalog_statuses(catalog: Dict[str, Any]) -> bool:
     """
     Check registration deadlines and stage dates:
-    Automatically marks items as 'archived' when deadlines have passed,
-    or 'active' when registration / future stages are open.
+    Automatically marks items as 'archived' when deadlines or all stages have passed,
+    or 'active' when registration or future stages are open.
     """
     today_str = date.today().isoformat()
     changed = False
@@ -79,21 +95,34 @@ def update_catalog_statuses(catalog: Dict[str, Any]) -> bool:
     for item in catalog.get("olympiads", []):
         old_status = item.get("status", "active")
         deadline = item.get("registration_deadline")
-        
-        # Check stages
-        stages = item.get("stages", [])
-        has_future_stage = any(
-            (stage.get("end") and stage["end"] >= today_str) or 
-            (stage.get("start") and stage["start"] >= today_str)
-            for stage in stages
-        )
 
-        if deadline and deadline < today_str and not has_future_stage:
-            item["status"] = "archived"
-        elif (deadline and deadline >= today_str) or has_future_stage:
-            item["status"] = "active"
+        # Clean out any old dummy 30-day stages
+        stages = [
+            s for s in item.get("stages", [])
+            if not (s.get("title") == "Отборочный / основной этап" and s.get("description") == "Сроки проведения согласно регламенту состязания.")
+        ]
+        if len(stages) != len(item.get("stages", [])):
+            item["stages"] = stages
+            changed = True
 
-        if item.get("status") != old_status:
+        all_dates = []
+        for stage in stages:
+            if stage.get("end"):
+                all_dates.append(stage["end"])
+            if stage.get("start"):
+                all_dates.append(stage["start"])
+
+        has_future_stage = any(d >= today_str for d in all_dates)
+        has_future_deadline = bool(deadline and deadline >= today_str)
+
+        # Active if there is an upcoming registration deadline or future stage
+        if has_future_stage or has_future_deadline:
+            new_status = "active"
+        else:
+            new_status = "archived"
+
+        if item.get("status") != new_status:
+            item["status"] = new_status
             changed = True
 
     return changed
@@ -251,14 +280,19 @@ def crawl_olimpiada_ru() -> List[Dict[str, Any]]:
 
                     start_date = ev_date_str
                     end_date = None
-                    if start_date and ev_len and ev_len.isdigit():
-                        days = int(ev_len)
-                        if days > 1:
-                            try:
-                                s_dt = date.fromisoformat(start_date)
-                                end_date = (s_dt + timedelta(days=days)).isoformat()
-                            except Exception:
-                                pass
+                    if start_date:
+                        try:
+                            s_dt = date.fromisoformat(start_date)
+                            if ev_len and ev_len.isdigit():
+                                days = int(ev_len)
+                                if days > 1:
+                                    end_date = (s_dt + timedelta(days=days - 1)).isoformat()
+                                else:
+                                    end_date = start_date
+                            else:
+                                end_date = start_date
+                        except Exception:
+                            end_date = start_date
                     if "ereg" in cls_list:
                         reg_deadline = end_date or start_date
 
@@ -271,21 +305,16 @@ def crawl_olimpiada_ru() -> List[Dict[str, Any]]:
                         "links": [{"title": "Карточка этапа", "url": f"https://olimpiada.ru/activity/{act_id}"}]
                     })
 
-                if not stages:
-                    stages.append({
-                        "title": "Отборочный / основной этап",
-                        "description": "Сроки проведения согласно регламенту состязания.",
-                        "start": today_str,
-                        "end": (date.today() + timedelta(days=30)).isoformat(),
-                        "subjects": normalized,
-                        "links": [{"title": "Официальная страница", "url": f"https://olimpiada.ru/activity/{act_id}"}]
-                    })
+                all_dates = []
+                for st in stages:
+                    if st.get("end"):
+                        all_dates.append(st["end"])
+                    if st.get("start"):
+                        all_dates.append(st["start"])
+                has_future_stage = any(d >= today_str for d in all_dates)
+                has_future_deadline = bool(reg_deadline and reg_deadline >= today_str)
 
-                status = "active"
-                if reg_deadline and reg_deadline < today_str:
-                    has_future = any((st.get("end") and st["end"] >= today_str) or (st.get("start") and st["start"] >= today_str) for st in stages)
-                    if not has_future:
-                        status = "archived"
+                status = "active" if (has_future_stage or has_future_deadline) else "archived"
 
                 discovered.append({
                     "id": f"olimpiada-ru-{act_id}",
@@ -332,14 +361,22 @@ def sync_catalog(force_crawl: bool = False) -> Dict[str, Any]:
     if should_crawl:
         logger.info("Executing automated crawler for olympiads...")
         crawled = crawl_olimpiada_ru()
-        existing_ids = {item["id"] for item in catalog.get("olympiads", [])}
-        
-        # Merge without overwriting manually curated seeds
+        existing_map = {item["id"]: item for item in catalog.get("olympiads", [])}
+
+        # Merge or update without overwriting manual seeds
         for item in crawled:
-            if item["id"] not in existing_ids:
+            if item["id"] in existing_map:
+                if not item["id"].startswith("seed-") and not item["id"].startswith("vseros-"):
+                    target = existing_map[item["id"]]
+                    target["stages"] = item.get("stages", target.get("stages", []))
+                    target["registration_deadline"] = item.get("registration_deadline", target.get("registration_deadline"))
+                    target["status"] = item.get("status", target.get("status"))
+                    target["classes"] = item.get("classes", target.get("classes"))
+            else:
                 catalog["olympiads"].append(item)
-                existing_ids.add(item["id"])
-        
+                existing_map[item["id"]] = item
+
+        update_catalog_statuses(catalog)
         catalog["updated_at"] = datetime.now().isoformat()
         catalog["total"] = len(catalog["olympiads"])
         save_catalog(catalog)
@@ -354,6 +391,7 @@ def sync_catalog(force_crawl: bool = False) -> Dict[str, Any]:
 
 async def catalog_background_loop():
     """Daily background task to update catalog deadlines and fetch fresh events."""
+    await asyncio.sleep(5)
     while True:
         try:
             await asyncio.to_thread(sync_catalog, False)
