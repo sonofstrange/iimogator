@@ -890,7 +890,13 @@ try {
       const previous = await old.json();
       if ((previous.events.length || previous.olympiads.length) && !schedule.events.length && !schedule.olympiads.length && confirm('Перенести расписание из этого браузера в аккаунт MAX?')) {
         await request('/move-browser', 'POST', {});
-        
+        await load();
+      }
+      localStorage.setItem('max-calendar-migration-asked', '1');
+    }
+  }
+} catch (error) { errorAt('schedule-error', error); render(); }
+
 // --- Olympiads Catalog Logic ---
 let catalogState = {
   status: 'active',
@@ -1054,10 +1060,3 @@ $('catalog-subject-tags')?.addEventListener('click', (e) => {
   loadCatalog();
 });
 
-
-  await load();
-      }
-      localStorage.setItem('max-calendar-migration-asked', '1');
-    }
-  }
-} catch (error) { errorAt('schedule-error', error); render(); }
